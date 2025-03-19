@@ -16,6 +16,6 @@ async function bootstrap() {
   );
 
   await app.listen();
-  console.log(`✅ Account Service is listening on port ${PORT}`);
+  console.log(`✅ Bus Management Service is listening on port ${PORT}`);
 }
 bootstrap();
