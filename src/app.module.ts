@@ -2,9 +2,10 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
 import { DataSource } from 'typeorm';
 import { CompanyModule } from './modules/company/company.module';
+import { OfficeModule } from './modules/office/office.module';
 
 @Module({
-  imports: [DatabaseModule, CompanyModule],
+  imports: [DatabaseModule, CompanyModule, OfficeModule],
   controllers: [],
   providers: [],
 })
