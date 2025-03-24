@@ -1,5 +1,4 @@
 export class DTO_RQ_Office {
-  id: number;
   name: string;
   code: string;
   phoneTicket: string;

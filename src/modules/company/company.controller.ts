@@ -3,6 +3,7 @@ import { CompanyService } from './company.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { DTO_RP_Company, DTO_RQ_Company } from './company.dto';
 import { ApiResponse } from 'src/utils/api-response';
+import { handleError } from 'src/utils/error-handler';
 
 @Controller()
 export class CompanyController {
@@ -16,10 +17,7 @@ export class CompanyController {
       const companies = await this.companyService.createCompany(data);
       return ApiResponse.success(companies);
     } catch (error) {
-      return ApiResponse.error(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return handleError(error);
     }
   }
 
@@ -29,90 +27,57 @@ export class CompanyController {
       const companies = await this.companyService.getAllCompanies();
       return ApiResponse.success(companies);
     } catch (error) {
-      return ApiResponse.error(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return handleError(error);
     }
   }
 
   @MessagePattern('update_company')
   async updateCompany(
-    @Payload() data: DTO_RQ_Company,
+    @Payload() data: {id: number, data: DTO_RQ_Company},
   ): Promise<ApiResponse<DTO_RP_Company>> {
     try {
-      const companies = await this.companyService.updateCompany(data);
+      console.log('Received Data ID: ', data.id);
+      console.log('Received Data Company: ', data.data);
+      const companies = await this.companyService.updateCompany(data.id, data.data);
       return ApiResponse.success(companies);
     } catch (error) {
-      return ApiResponse.error(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return handleError(error);
     }
   }
 
   @MessagePattern('delete_company')
   async deleteCompany(
-    @Payload() data: { id: number },
+    @Payload() data: number ,
   ): Promise<ApiResponse<void>> {
     try {
-      if (!data.id) {
-        return ApiResponse.error('Company ID is required', 400);
-      }
-
-      await this.companyService.deleteCompany(data.id);
+      await this.companyService.deleteCompany(data);
       return ApiResponse.success(null);
     } catch (error) {
-      return ApiResponse.error(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return handleError(error);
     }
   }
 
   @MessagePattern('lock_company')
   async lockCompany(
-    @Payload() data: { id: number },
+    @Payload() data: number,
   ): Promise<ApiResponse<DTO_RP_Company>> {
     try {
-      if (!data.id) {
-        return ApiResponse.error('Company ID is required', 400);
-      }
-
-      const company = await this.companyService.lockCompany(data.id);
-      if (!company) {
-        return ApiResponse.error('Company not found', 404);
-      }
-
+      const company = await this.companyService.lockCompany(data);
       return ApiResponse.success(company);
     } catch (error) {
-      return ApiResponse.error(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return handleError(error);
     }
   }
 
   @MessagePattern('unlock_company')
   async unlockCompany(
-    @Payload() data: { id: number },
+    @Payload() data: number,
   ): Promise<ApiResponse<DTO_RP_Company>> {
     try {
-      if (!data.id) {
-        return ApiResponse.error('Company ID is required', 400);
-      }
-
-      const company = await this.companyService.unlockCompany(data.id);
-      if (!company) {
-        return ApiResponse.error('Company not found', 404);
-      }
-
+      const company = await this.companyService.unlockCompany(data);
       return ApiResponse.success(company);
     } catch (error) {
-      return ApiResponse.error(
-        'Internal Server Error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return handleError(error);
     }
   }
 }

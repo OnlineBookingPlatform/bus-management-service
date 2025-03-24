@@ -20,31 +20,52 @@ export class OfficeController {
       return handleError(error);
     }
   }
-  @MessagePattern('get_office_by_company')
+  @MessagePattern('get_offices_by_company')
   async getOfficesByCompany(
-    @Payload() data: { companyId: number },
+    @Payload() companyId: number,
   ): Promise<ApiResponse<DTO_RP_Office[]>> {
     try {
-      const offices = await this.officeService.getOfficesByCompany(
-        data.companyId,
-      );
+      const offices = await this.officeService.getOfficesByCompany(companyId);
       return ApiResponse.success(offices);
     } catch (error) {
       return handleError(error);
     }
   }
 
-  // @MessagePattern('get_office_name_by_company')
-  // async getOfficeNameByCompany(
-  //   @Payload() data: { companyId: number },
-  // ): Promise<ApiResponse<DTO_RP_OfficeName>> {
-  //   try {
-  //     const officeName = await this.officeService.getOfficeNameByCompany(
-  //       data.companyId,
-  //     );
-  //     return ApiResponse.success(officeName);
-  //   } catch (error) {
-  //     return handleError(error);
-  //   }
-  // }
+  @MessagePattern('get_office_name_by_company')
+  async getOfficeNameByCompany(
+    @Payload() companyId: number,
+  ): Promise<ApiResponse<DTO_RP_OfficeName[]>> {
+    try {
+      const officeName =
+        await this.officeService.getOfficeNameByCompany(companyId);
+      return ApiResponse.success(officeName);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('update_office')
+  async updateOffice(
+    @Payload() data: { id: number; data: DTO_RQ_Office },
+  ): Promise<ApiResponse<DTO_RP_Office>> {
+    try {
+      const office = await this.officeService.updateOffice(data.id, data.data);
+      return ApiResponse.success(office);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('delete_office')
+  async deleteOffice(
+    @Payload() id: number,
+  ): Promise<ApiResponse<void>> {
+    try {
+      const office = await this.officeService.deleteOffice(id);
+      return ApiResponse.success(office);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
 }
