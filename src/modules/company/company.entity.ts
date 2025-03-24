@@ -2,8 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Office } from '../office/office.entity';
 
 @Entity('tbl_company')
 export class Company {
@@ -27,4 +29,7 @@ export class Company {
   note: string;
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
+
+  @OneToMany(() => Office, (office) => office.company)
+  offices: Office[];
 }

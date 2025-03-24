@@ -3,56 +3,104 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Office } from './office.entity';
 import { DTO_RP_Office, DTO_RQ_Office } from './office.dto';
+import { Company } from '../company/company.entity';
+import { ApiResponse } from 'src/utils/api-response';
 
 @Injectable()
 export class OfficeService {
   constructor(
     @InjectRepository(Office)
     private readonly officeRepository: Repository<Office>,
+    @InjectRepository(Company)
+    private readonly companyRepository: Repository<Company>,
   ) {}
 
   async createOffice(office: DTO_RQ_Office): Promise<DTO_RP_Office> {
-    console.log('Received Data: ', office);
-    try {
-      const existingOffice = await this.officeRepository.findOne({
-        where: { name: office.name },
-      });
+    console.log('Received Data Office from client: ', office);
+    const existingCompany = await this.companyRepository.findOne({
+      where: { id: office.companyId },
+    });
 
-      if (existingOffice) {
-        throw new HttpException(
-          'Tên văn phòng đã tồn tại!',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const newOffice = await this.officeRepository.save(office);
-      if (!newOffice) {
-        throw new HttpException(
-          'Không thể lưu dữ liệu!',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
-      return {
-        id: newOffice.id,
-        name: newOffice.name,
-        code: newOffice.code,
-        phoneTicket: newOffice.phoneTicket,
-        phoneGoods: newOffice.phoneGoods,
-        address: newOffice.address,
-        note: newOffice.note,
-        typeTicket: newOffice.typeTicket,
-        typeGoods: newOffice.typeGoods,
-        created_at: newOffice.created_at.toISOString(),
-      };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+    if (!existingCompany) {
       throw new HttpException(
-        'Lưu dữ liệu thất bại!',
+        'Dữ liệu công ty không tồn tại!',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+
+    const existingOffice = await this.officeRepository.findOne({
+      where: {
+        name: office.name,
+        company: { id: office.companyId },
+      },
+      relations: ['company'],
+    });
+
+    if (existingOffice) {
+      throw new HttpException(
+        `${office.name} đã tồn tại trong công ty!`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const newOffice = this.officeRepository.create({
+      ...office,
+      company: existingCompany,
+    });
+
+    const savedOffice = await this.officeRepository.save(newOffice);
+
+    return {
+      id: savedOffice.id,
+      name: savedOffice.name,
+      code: savedOffice.code,
+      phoneTicket: savedOffice.phoneTicket,
+      phoneGoods: savedOffice.phoneGoods,
+      address: savedOffice.address,
+      note: savedOffice.note,
+      typeTicket: savedOffice.typeTicket,
+      typeGoods: savedOffice.typeGoods,
+      companyId: savedOffice.company.id,
+      created_at: savedOffice.created_at.toISOString(),
+    };
+  }
+
+  async getOfficesByCompany(companyId: number): Promise<DTO_RP_Office[]> {
+    console.log('Received Company ID from client: ', companyId);
+    const existingCompany = await this.companyRepository.findOne({
+      where: { id: companyId },
+    });
+
+    if (!existingCompany) {
+      throw new HttpException(
+        'Dữ liệu công ty không tồn tại!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const offices = await this.officeRepository.find({
+      where: { companyId },
+    });
+    console.log(offices);
+    if (!offices || offices.length === 0) {
+      return [];
+    }
+    const mappedOffices = offices.map((office) => {
+      console.log('Mapping office:', office);
+      return {
+        id: office.id,
+        name: office.name,
+        code: office.code,
+        phoneTicket: office.phoneTicket,
+        phoneGoods: office.phoneGoods,
+        address: office.address,
+        note: office.note,
+        typeTicket: office.typeTicket,
+        typeGoods: office.typeGoods,
+        companyId: office.companyId,
+        created_at: office.created_at ? office.created_at.toISOString() : null,
+      };
+    });
+    return mappedOffices;
   }
 }
