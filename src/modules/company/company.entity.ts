@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Office } from '../office/office.entity';
+import { SeatMap } from '../seat/seat_map.entity';
 
 @Entity('tbl_company')
 export class Company {
@@ -32,4 +33,7 @@ export class Company {
 
   @OneToMany(() => Office, (office) => office.company)
   offices: Office[];
+
+  @OneToMany(() => SeatMap, (seat_map) => seat_map.company)
+  seat_map: SeatMap[];
 }

@@ -3,9 +3,10 @@ import { DatabaseModule } from './database/database.module';
 import { DataSource } from 'typeorm';
 import { CompanyModule } from './modules/company/company.module';
 import { OfficeModule } from './modules/office/office.module';
+import { SeatModule } from './modules/seat/seat.module';
 
 @Module({
-  imports: [DatabaseModule, CompanyModule, OfficeModule],
+  imports: [DatabaseModule, CompanyModule, OfficeModule, SeatModule],
   controllers: [],
   providers: [],
 })
