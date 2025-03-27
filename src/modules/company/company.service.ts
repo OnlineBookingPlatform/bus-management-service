@@ -3,18 +3,21 @@ import { Company } from './company.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DTO_RP_Company, DTO_RQ_Company } from './company.dto';
+import { RedisService } from 'src/config/redis.service';
+import { stat } from 'fs';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
+    private readonly redisService: RedisService,
   ) {}
 
+  // Tạo công ty mới data lưu vào PostgreSQL và Redis
   async createCompany(company: DTO_RQ_Company): Promise<DTO_RP_Company> {
-    console.log('Received Data: ', JSON.stringify(company, null, 2));
-  
-    // Xoá `created_at` nếu tồn tại để tránh lỗi
+    console.log('Received Data: ', company);
+
     if ('created_at' in company) {
       delete company.created_at;
     }
@@ -22,10 +25,22 @@ export class CompanyService {
       where: { code: company.code },
     });
     if (existingCompany) {
-      throw new HttpException("Mã công ty đã tồn tại", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Mã công ty đã tồn tại', HttpStatus.BAD_REQUEST);
     }
-  
+
     const newCompany = await this.companyRepository.save(company);
+
+    const companyCacheData = {
+      id: newCompany.id,
+      code: newCompany.code,
+      status: newCompany.status,
+    };
+    await this.redisService.set(
+      `company:${newCompany.id}`,
+      JSON.stringify(companyCacheData),
+    );
+    console.log(`✅ Công ty ${newCompany.id} đã được lưu vào Redis`);
+
     return {
       id: newCompany.id,
       name: newCompany.name,
@@ -39,9 +54,19 @@ export class CompanyService {
       created_at: newCompany.created_at.toISOString(),
     };
   }
-  
+
+  // Lấy danh sách tất cả công ty từ PostgreSQL và lưu vào Redis
   async getAllCompanies(): Promise<DTO_RP_Company[]> {
     const companies = await this.companyRepository.find();
+    for (const company of companies) {
+      const companyData = JSON.stringify({
+        id: company.id,
+        code: company.code,
+        status: company.status,
+      });
+      await this.redisService.set(`company:${company.id}`, companyData);
+    }
+    console.log('✅ Đã lưu danh sách công ty vào Redis');
     const companiesMapped = companies.map((company) => ({
       id: company.id,
       name: company.name,
@@ -57,69 +82,80 @@ export class CompanyService {
     return companiesMapped;
   }
 
+  // Cập nhật thông tin công ty trong PostgreSQL và Redis
   async updateCompany(
-    id: number, 
-    companyData: DTO_RQ_Company
+    id: number,
+    companyData: DTO_RQ_Company,
   ): Promise<DTO_RP_Company> {
+    // 1. Kiểm tra xem công ty có tồn tại không
+    const existingCompany = await this.companyRepository.findOne({ where: { id } });
   
-    try {
-      // 1. Kiểm tra xem công ty có tồn tại không
-      const existingCompany = await this.companyRepository.findOne({
-        where: { id },
-      });
-  
-      if (!existingCompany) {
-        throw new HttpException(`Không tìm thấy công ty với ID: ${id}`, HttpStatus.NOT_FOUND);
-      }
-  
-      // 2. Cập nhật dữ liệu
-      await this.companyRepository.update(id, {
-        name: companyData.name,
-        phone: companyData.phone,
-        address: companyData.address,
-        tax_code: companyData.tax_code,
-        status: companyData.status,
-        url_logo: companyData.url_logo,
-        code: companyData.code,
-        note: companyData.note,
-      });
-  
-      // 3. Lấy dữ liệu sau khi cập nhật
-      const updatedCompany = await this.companyRepository.findOne({
-        where: { id },
-      });
-  
-      if (!updatedCompany) {
-        throw new Error(`Lỗi khi lấy dữ liệu công ty sau khi cập nhật ID: ${id}`);
-      }
-  
-      return {
-        id: updatedCompany.id,
-        name: updatedCompany.name,
-        phone: updatedCompany.phone,
-        address: updatedCompany.address,
-        tax_code: updatedCompany.tax_code,
-        status: updatedCompany.status,
-        url_logo: updatedCompany.url_logo,
-        code: updatedCompany.code,
-        note: updatedCompany.note,
-        created_at: updatedCompany.created_at.toISOString(),
-      };
-    } catch (error) {
-      console.error('Error updating company:', error);
-      throw error;
+    if (!existingCompany) {
+      throw new HttpException(
+        `Không tìm thấy công ty với ID: ${id}`,
+        HttpStatus.NOT_FOUND,
+      );
     }
+  
+    // 2. Cập nhật dữ liệu trong database
+    await this.companyRepository.update(id, {
+      name: companyData.name,
+      phone: companyData.phone,
+      address: companyData.address,
+      tax_code: companyData.tax_code,
+      status: companyData.status,
+      url_logo: companyData.url_logo,
+      code: companyData.code,
+      note: companyData.note,
+    });
+  
+    // 3. Lấy dữ liệu mới sau khi cập nhật
+    const updatedCompany = await this.companyRepository.findOne({ where: { id } });
+  
+    if (!updatedCompany) {
+      throw new HttpException(
+        `Lỗi khi lấy dữ liệu công ty sau khi cập nhật ID: ${id}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  
+    // 4. Cập nhật Redis với ID & Name & status
+    await this.redisService.set(
+      `company:${updatedCompany.id}`,
+      JSON.stringify({ id: updatedCompany.id, code: updatedCompany.code, status: updatedCompany.status })
+    );
+  
+    return {
+      id: updatedCompany.id,
+      name: updatedCompany.name,
+      phone: updatedCompany.phone,
+      address: updatedCompany.address,
+      tax_code: updatedCompany.tax_code,
+      status: updatedCompany.status,
+      url_logo: updatedCompany.url_logo,
+      code: updatedCompany.code,
+      note: updatedCompany.note,
+      created_at: updatedCompany.created_at.toISOString(),
+    };
   }
   
+  // Xóa công ty trong PostgreSQL và Redis
   async deleteCompany(id: number): Promise<void> {
     console.log('Received Data:', id);
     const company = await this.companyRepository.findOne({ where: { id } });
     if (!company) {
-      throw new Error(`Company with ID ${id} not found`);
+      throw new HttpException(
+        `Không tìm thấy công ty với ID: ${id}`,
+        HttpStatus.NOT_FOUND,
+      );
     }
     await this.companyRepository.delete(id);
+    await this.redisService.delete(`company:${id}`);
+    console.log(`✅ Xóa thành công company:${id} trong PostgreSQL`);
+    console.log(`✅ Xóa thành công company:${id} trong Redis`);
   }
 
+  // Khóa công ty trong PostgreSQL và Redis
   async lockCompany(id: number): Promise<DTO_RP_Company> {
     console.log('Received Data: ', id);
     const company = await this.companyRepository.findOne({ where: { id } });
@@ -129,6 +165,11 @@ export class CompanyService {
 
     company.status = false;
     await this.companyRepository.save(company);
+
+    await this.redisService.set(
+      `company:${company.id}`,
+      JSON.stringify({ id: company.id, code: company.code, status: company.status })
+    );
 
     return {
       id: company.id,
@@ -143,6 +184,8 @@ export class CompanyService {
       created_at: company.created_at.toISOString(),
     };
   }
+
+  // Mở khóa công ty trong PostgreSQL và Redis
   async unlockCompany(id: number): Promise<DTO_RP_Company> {
     console.log('Received Data: ', id);
     const company = await this.companyRepository.findOne({ where: { id } });
@@ -152,7 +195,10 @@ export class CompanyService {
 
     company.status = true;
     await this.companyRepository.save(company);
-
+    await this.redisService.set(
+      `company:${company.id}`,
+      JSON.stringify({ id: company.id, code: company.code, status: company.status })
+    );
     return {
       id: company.id,
       name: company.name,

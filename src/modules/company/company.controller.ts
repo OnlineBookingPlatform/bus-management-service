@@ -1,4 +1,4 @@
-import { Controller, HttpStatus } from '@nestjs/common';
+import { Controller, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { DTO_RP_Company, DTO_RQ_Company } from './company.dto';
@@ -10,6 +10,7 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @MessagePattern('create_company')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async createCompany(
     @Payload() data: DTO_RQ_Company,
   ): Promise<ApiResponse<DTO_RP_Company>> {

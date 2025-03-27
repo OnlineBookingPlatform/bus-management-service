@@ -7,6 +7,6 @@ export class SeatService {
 
   createSeat(data: DTO_RQ_SeatMap):Promise<DTO_RP_SeatMap> {
     console.log('Received Data Seat from client: ', data);
-    return data;
+    return null;
   }
 }
