@@ -33,6 +33,7 @@ export class CompanyController {
   }
 
   @MessagePattern('update_company')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async updateCompany(
     @Payload() data: {id: number, data: DTO_RQ_Company},
   ): Promise<ApiResponse<DTO_RP_Company>> {
@@ -59,6 +60,7 @@ export class CompanyController {
   }
 
   @MessagePattern('lock_company')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async lockCompany(
     @Payload() data: number,
   ): Promise<ApiResponse<DTO_RP_Company>> {
@@ -71,6 +73,7 @@ export class CompanyController {
   }
 
   @MessagePattern('unlock_company')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async unlockCompany(
     @Payload() data: number,
   ): Promise<ApiResponse<DTO_RP_Company>> {
