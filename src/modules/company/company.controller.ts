@@ -1,4 +1,4 @@
-import { Controller, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { DTO_RP_Company, DTO_RQ_Company } from './company.dto';
