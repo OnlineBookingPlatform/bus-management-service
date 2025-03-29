@@ -1,25 +1,52 @@
+import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
+
 export class DTO_RQ_Office {
+  @IsOptional()
+  id: number;
+  
+  @IsString()
   name: string;
+
+  @IsString()
   code: string;
-  phoneTicket: string;
-  phoneGoods: string;
+
+  @IsOptional()
+  @IsString()
+  phone_ticket: string;
+
+  @IsOptional()
+  @IsString()
+  phone_goods: string;
+
+
+  @IsString()
   address: string;
+
+  @IsString()
+  @IsOptional()
   note: string;
-  typeTicket: boolean;
-  typeGoods: boolean;
-  companyId: number;
+
+  @IsOptional()
+  @IsBoolean()
+  type_ticket: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  type_goods: boolean;
+
+  @IsInt()
+  company_id: number;
 }
 export class DTO_RP_Office {
   id: number;
   name: string;
   code: string;
-  phoneTicket: string;
-  phoneGoods: string;
+  phone_ticket: string;
+  phone_goods: string;
   address: string;
   note: string;
-  typeTicket: boolean;
-  typeGoods: boolean;
-  companyId: number;
+  type_ticket: boolean;
+  type_goods: boolean;
   created_at: string;
 }
 export class DTO_RP_OfficeName {

@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { OfficeService } from './office.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiResponse } from 'src/utils/api-response';
@@ -10,6 +10,7 @@ export class OfficeController {
   constructor(private readonly officeService: OfficeService) {}
 
   @MessagePattern('create_office')
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async createOffice(
     @Payload() data: DTO_RQ_Office,
   ): Promise<ApiResponse<DTO_RP_Office>> {
@@ -22,10 +23,10 @@ export class OfficeController {
   }
   @MessagePattern('get_offices_by_company')
   async getOfficesByCompany(
-    @Payload() companyId: number,
+    @Payload() id: number,
   ): Promise<ApiResponse<DTO_RP_Office[]>> {
     try {
-      const offices = await this.officeService.getOfficesByCompany(companyId);
+      const offices = await this.officeService.getOfficesByCompany(id);
       return ApiResponse.success(offices);
     } catch (error) {
       return handleError(error);
@@ -46,6 +47,7 @@ export class OfficeController {
   }
 
   @MessagePattern('update_office')
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async updateOffice(
     @Payload() data: { id: number; data: DTO_RQ_Office },
   ): Promise<ApiResponse<DTO_RP_Office>> {

@@ -20,10 +20,10 @@ export class Office {
   code: string;
 
   @Column()
-  phoneTicket: string;
+  phone_ticket: string;
 
   @Column()
-  phoneGoods: string;
+  phone_goods: string;
 
   @Column()
   address: string;
@@ -32,21 +32,21 @@ export class Office {
   note: string;
 
   @Column()
-  typeTicket: boolean;
+  type_ticket: boolean;
 
   @Column()
-  typeGoods: boolean;
+  type_goods: boolean;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @Column({ nullable: true })
-  companyId: number;
+  @Column()
+  company_id: number;
 
   @ManyToOne(() => Company, (company) => company.offices, {
-    nullable: true,
-    onDelete: 'SET NULL',
+    nullable: false,
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'companyId' })
+  @JoinColumn({ name: 'company_id' })
   company: Company;
 }
