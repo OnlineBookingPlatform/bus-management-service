@@ -35,11 +35,11 @@ export class OfficeController {
 
   @MessagePattern('get_office_name_by_company')
   async getOfficeNameByCompany(
-    @Payload() companyId: number,
+    @Payload() id: number,
   ): Promise<ApiResponse<DTO_RP_OfficeName[]>> {
     try {
       const officeName =
-        await this.officeService.getOfficeNameByCompany(companyId);
+        await this.officeService.getOfficeNameByCompany(id);
       return ApiResponse.success(officeName);
     } catch (error) {
       return handleError(error);
