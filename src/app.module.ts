@@ -5,6 +5,7 @@ import { CompanyModule } from './modules/company/company.module';
 import { OfficeModule } from './modules/office/office.module';
 import { SeatModule } from './modules/seat/seat.module';
 import { RedisService } from './config/redis.service';
+import { VehicleModule } from './modules/vehicle/vehicle.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { RedisService } from './config/redis.service';
     CompanyModule,
     OfficeModule,
     SeatModule,
+    VehicleModule,
   ],
   controllers: [],
   providers: [RedisService],

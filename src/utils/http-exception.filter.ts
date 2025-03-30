@@ -14,6 +14,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
+    console.log('🚀 Caught Exception:', exception);
+
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal Server Error';
     let result = null;
@@ -33,3 +35,4 @@ export class HttpExceptionFilter implements ExceptionFilter {
     response.status(status).json(new ApiResponse(status, message, result));
   }
 }
+
