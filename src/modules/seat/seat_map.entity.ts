@@ -21,8 +21,8 @@ export class SeatMap {
     @Column()
     company_id: number;
     @ManyToOne(() => Company, (company) => company.seat_map, {
-        nullable: true,
-        onDelete: 'SET NULL',
+        nullable: false,
+        onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'company_id' })
     company: Company;

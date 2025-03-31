@@ -15,6 +15,7 @@ export class DTO_RQ_Seat {
   @IsBoolean()
   status: boolean;
   @IsString()
+  @IsOptional()
   name: string;
 }
 export class DTO_RQ_SeatMap {
@@ -29,7 +30,6 @@ export class DTO_RQ_SeatMap {
   @IsInt()
   total_row: number;
   @IsInt()
-  @IsOptional()
   company_id: number;
   @ValidateNested({ each: true })
   @Type(() => DTO_RQ_Seat)
