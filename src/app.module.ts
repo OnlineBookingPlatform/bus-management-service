@@ -8,6 +8,8 @@ import { RedisService } from './config/redis.service';
 import { VehicleModule } from './modules/vehicle/vehicle.module';
 import { RouteModule } from './modules/route/route.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
+import { LocationModule } from './modules/location/location.module';
+import { PointModule } from './modules/point/point.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
     VehicleModule,
     RouteModule,
     ScheduleModule,
+    LocationModule, 
+    PointModule
   ],
   controllers: [],
   providers: [RedisService],
