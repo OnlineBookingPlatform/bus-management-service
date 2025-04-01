@@ -52,3 +52,7 @@ export class DTO_RP_SeatMap {
   total_row: number;
   seats: DTO_RP_Seat[];
 }
+export class DTO_RP_SeatMapName {
+  id: number;
+  name: string;
+}

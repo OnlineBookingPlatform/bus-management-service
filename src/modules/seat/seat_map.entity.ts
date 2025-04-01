@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Company } from "../company/company.entity";
 import { Seat } from "./seat.entity";
+import { Schedule } from "../schedule/schedule.entity";
 
 @Entity('tbl_seat_map')
 export class SeatMap {
@@ -29,4 +30,7 @@ export class SeatMap {
 
     @OneToMany(() => Seat, (seat) => seat.seat_map)
     seats: Seat[];
+
+    @OneToMany(() => Schedule, (schedule) => schedule.seat_map)
+    schedules: Schedule[];
 }

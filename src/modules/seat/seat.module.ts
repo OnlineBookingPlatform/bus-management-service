@@ -10,6 +10,7 @@ import { Seat } from './seat.entity';
     imports: [TypeOrmModule.forFeature([SeatMap, Seat]), CompanyModule],
     controllers: [SeatController],
     providers: [SeatService],
+    exports: [SeatService, TypeOrmModule],
   })
   export class SeatModule {}
   

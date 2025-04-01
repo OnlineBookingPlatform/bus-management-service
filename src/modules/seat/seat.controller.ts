@@ -1,7 +1,7 @@
 import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { SeatService } from './seat.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { DTO_RP_SeatMap, DTO_RQ_SeatMap } from './seat.dto';
+import { DTO_RP_SeatMap, DTO_RP_SeatMapName, DTO_RQ_SeatMap } from './seat.dto';
 import { ApiResponse } from 'src/utils/api-response';
 import { handleError } from 'src/utils/error-handler';
 
@@ -52,6 +52,18 @@ export class SeatController {
   ): Promise<ApiResponse<DTO_RP_SeatMap>> {
     try {
       const response = await this.seatService.updateSeatMap(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('get_seat_map_name_by_company')
+  async getSeatMapNameByCompanyId(
+    @Payload() id: number,
+  ): Promise<ApiResponse<DTO_RP_SeatMapName[]>> {
+    try {
+      const response = await this.seatService.getSeatMapNameByCompanyId(id);
       return ApiResponse.success(response);
     } catch (error) {
       return handleError(error);

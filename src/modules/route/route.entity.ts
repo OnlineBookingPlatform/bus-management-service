@@ -46,6 +46,6 @@ export class Route {
   @JoinColumn({ name: 'company_id' })
   company: Company;
 
-  // @OneToMany(() => Schedule, (schedule) => schedule.route)
-  // schedules: Schedule[];
+  @OneToMany(() => Schedule, (schedule) => schedule.route)
+  schedules: Schedule[];
 }

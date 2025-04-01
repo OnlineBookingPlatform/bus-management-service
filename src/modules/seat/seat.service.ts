@@ -1,5 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { DTO_RP_SeatMap, DTO_RQ_Seat, DTO_RQ_SeatMap } from './seat.dto';
+import {
+  DTO_RP_SeatMap,
+  DTO_RP_SeatMapName,
+  DTO_RQ_Seat,
+  DTO_RQ_SeatMap,
+} from './seat.dto';
 import { SeatMap } from './seat_map.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -189,7 +194,7 @@ export class SeatService {
     try {
       console.log('🔍 [STEP 1] Nhận ID sơ đồ ghế từ request:', data.id);
 
-      // 1. 
+      // 1.
       const seatMap = await this.seatMapRepository.findOne({
         where: { id: data.id },
         relations: ['seats'],
@@ -202,7 +207,7 @@ export class SeatService {
         );
       }
 
-      // 2. Validate 
+      // 2. Validate
       if (
         data.data.total_row <= 0 ||
         data.data.total_column <= 0 ||
@@ -292,6 +297,7 @@ export class SeatService {
                     company_id: 0,
                     company: new Company(),
                     seats: [],
+                    schedules: [],
                   },
                 });
               }
@@ -334,7 +340,6 @@ export class SeatService {
             {
               name: seatData.name,
               status: seatData.status,
-              
             },
           );
         });
@@ -384,5 +389,32 @@ export class SeatService {
 
   private generateSeatCode(floor: number, row: number, column: number): string {
     return `T${floor}-H${row}-C${column}`;
+  }
+
+  async getSeatMapNameByCompanyId(id: number): Promise<DTO_RP_SeatMapName[]> {
+    const existingCompany = await this.companyRepository.findOne({
+      where: { id: id },
+    });
+    if (!existingCompany) {
+      console.error('❌ [ERROR] Công ty không tồn tại với ID:', id);
+      throw new HttpException(
+        'Dữ liệu công ty không tồn tại!',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const seatMap = await this.seatMapRepository.find({
+      where: { company_id: id },
+    });
+    if (!seatMap || seatMap.length === 0) {
+      return [];
+    }
+    const mappedSeatMapName = seatMap.map((seatmap) => {
+      return {
+        id: seatmap.id,
+        name: seatmap.name,
+      };
+    });
+
+    return mappedSeatMapName;
   }
 }
