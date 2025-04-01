@@ -32,3 +32,8 @@ export class DTO_RP_Route {
   note: string;
   created_at: string;
 }
+
+export class DTO_RP_RouteName {
+  id: number;
+  name: string;
+}

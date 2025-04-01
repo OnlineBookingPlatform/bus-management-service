@@ -33,6 +33,9 @@ export class Route {
   @Column({ nullable: true })
   note: string;
 
+  @Column({ type: 'int' })
+  display_order: number;
+
   @Column({ name: 'company_id' })
   company_id: number;
 
