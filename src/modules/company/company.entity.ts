@@ -8,6 +8,8 @@ import {
 import { Office } from '../office/office.entity';
 import { SeatMap } from '../seat/seat_map.entity';
 import { Vehicle } from '../vehicle/vehicle.entity';
+import { Schedule } from '../schedule/schedule.entity';
+import { Route } from '../route/route.entity';
 
 @Entity('tbl_company')
 export class Company {
@@ -40,4 +42,10 @@ export class Company {
 
   @OneToMany(() => Vehicle, (vehicle) => vehicle.company)
   vehicles: Vehicle[];
+
+  @OneToMany(() => Schedule, (schedule) => schedule.company)
+  schedules: Schedule[];
+
+  @OneToMany(() => Route, (route) => route.company)
+  routes: Route[];
 }
