@@ -1,6 +1,12 @@
 import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { DTO_RP_Point, DTO_RP_PointName, DTO_RQ_Point } from './point.dto';
+import {
+  DTO_RP_Point,
+  DTO_RP_PointName,
+  DTO_RP_PointOfRoute,
+  DTO_RQ_Point,
+  DTO_RQ_PointOfRoute,
+} from './point.dto';
 import { ApiResponse } from 'src/utils/api-response';
 import { handleError } from 'src/utils/error-handler';
 import { PointService } from './point.service';
@@ -65,6 +71,32 @@ export class PointController {
     try {
       const point = await this.pointService.getPointNameByCompany(id);
       return ApiResponse.success(point);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('create_point_of_route')
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async createPointOfRoute(
+    @Payload() data: DTO_RQ_PointOfRoute[],
+  ): Promise<ApiResponse<DTO_RP_PointOfRoute[]>> {
+    try {
+      console.log('data', data);
+      const points = await this.pointService.createPointOfRoute(data);
+      return ApiResponse.success(points);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('get_point_of_route_by_route')
+  async getPointOfRouteByRoute(
+    @Payload() id: number,
+  ): Promise<ApiResponse<DTO_RP_PointOfRoute[]>> {
+    try {
+      const points = await this.pointService.getPointOfRouteByRoute(id);
+      return ApiResponse.success(points);
     } catch (error) {
       return handleError(error);
     }

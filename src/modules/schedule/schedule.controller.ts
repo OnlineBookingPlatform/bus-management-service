@@ -1,4 +1,4 @@
-import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
+ import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { handleError } from 'src/utils/error-handler';
