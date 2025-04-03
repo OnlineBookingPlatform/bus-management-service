@@ -11,5 +11,6 @@ import { SeatModule } from '../seat/seat.module';
   imports: [TypeOrmModule.forFeature([Schedule]), CompanyModule, RouteModule, SeatModule],
   controllers: [ScheduleController],
   providers: [ScheduleService],
+  exports: [ScheduleService, TypeOrmModule],
 })
 export class ScheduleModule {}

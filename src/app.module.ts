@@ -10,6 +10,7 @@ import { RouteModule } from './modules/route/route.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { LocationModule } from './modules/location/location.module';
 import { PointModule } from './modules/point/point.module';
+import { TripModule } from './modules/trip/trip.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { PointModule } from './modules/point/point.module';
     RouteModule,
     ScheduleModule,
     LocationModule, 
-    PointModule
+    PointModule, 
+    TripModule
   ],
   controllers: [],
   providers: [RedisService],

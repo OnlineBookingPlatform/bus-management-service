@@ -4,11 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Company } from '../company/company.entity';
 import { Route } from '../route/route.entity';
 import { SeatMap } from '../seat/seat_map.entity';
+import { Trip } from '../trip/trip.entity';
 
 @Entity('tbl_schedule')
 export class Schedule {
@@ -56,4 +58,8 @@ export class Schedule {
   })
   @JoinColumn({ name: 'company_id' })
   company: Company | null;
+
+  @OneToMany(() => Trip, (trip) => trip.schedule)
+  trips: Trip[];
+  route_id: any;
 }

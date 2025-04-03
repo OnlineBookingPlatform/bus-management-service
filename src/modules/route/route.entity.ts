@@ -10,6 +10,7 @@ import {
 import { Company } from '../company/company.entity';
 import { Schedule } from '../schedule/schedule.entity';
 import { PointOfRoute } from '../point/point_of_route.entity';
+import { Trip } from '../trip/trip.entity';
 
 @Entity('tbl_route')
 export class Route {
@@ -52,4 +53,7 @@ export class Route {
 
   @OneToMany(() => PointOfRoute, (point) => point.route)
   point_of_route: PointOfRoute[];
+
+  @OneToMany(() => Trip, (trip) => trip.route)
+  trips: Trip[];
 }

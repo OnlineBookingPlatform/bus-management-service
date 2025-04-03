@@ -12,5 +12,6 @@ import { PointOfRoute } from './point_of_route.entity';
   imports: [TypeOrmModule.forFeature([Point, PointOfRoute]), CompanyModule, LocationModule, RouteModule], 
   controllers: [PointController],
   providers: [PointService],
+  exports: [PointService, TypeOrmModule],
 })
 export class PointModule {}
