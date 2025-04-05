@@ -1,7 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from '../company/company.entity';
-import { Repository } from 'typeorm';
+import {
+  Between,
+  IsNull,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+  In,
+  EntityManager,
+} from 'typeorm';
 import { Trip } from './trip.entity';
 import { Schedule } from '../schedule/schedule.entity';
 import { SeatMap } from '../seat/seat_map.entity';
@@ -9,8 +22,9 @@ import { Route } from '../route/route.entity';
 import { PointOfRoute } from '../point/point_of_route.entity';
 import { Point } from '../point/point.entity';
 import { Province } from '../location/provinces.entity';
-import { DTO_RP_TripDetail } from './trip.dto';
+import { DTO_RP_ListTrip, DTO_RP_TripDetail } from './trip.dto';
 import { Ticket } from '../ticket/ticket.entity';
+import { Seat } from '../seat/seat.entity';
 
 @Injectable()
 export class TripService {
@@ -334,13 +348,28 @@ export class TripService {
   //   return newTrips;
   // }
 
-  private async findValidRoutes(departureId: number, destinationId: number): Promise<Route[]> {
-    console.log(`Tìm route có điểm đi ${departureId} trước điểm đến ${destinationId}...`);
+  private async findValidRoutes(
+    departureId: number,
+    destinationId: number,
+  ): Promise<Route[]> {
+    console.log(
+      `Tìm route có điểm đi ${departureId} trước điểm đến ${destinationId}...`,
+    );
 
     const routes = await this.routeRepository
       .createQueryBuilder('route')
-      .innerJoinAndSelect('route.point_of_route', 'departurePoint', 'departurePoint.point_id = :departureId', { departureId })
-      .innerJoinAndSelect('route.point_of_route', 'destinationPoint', 'destinationPoint.point_id = :destinationId', { destinationId })
+      .innerJoinAndSelect(
+        'route.point_of_route',
+        'departurePoint',
+        'departurePoint.point_id = :departureId',
+        { departureId },
+      )
+      .innerJoinAndSelect(
+        'route.point_of_route',
+        'destinationPoint',
+        'destinationPoint.point_id = :destinationId',
+        { destinationId },
+      )
       .where('departurePoint.display_order < destinationPoint.display_order')
       .getMany();
 
@@ -348,8 +377,13 @@ export class TripService {
     return routes;
   }
 
-  private async findExistingTrips(routeIds: number[], date: Date): Promise<Trip[]> {
-    console.log(`Tìm trip đã tồn tại cho ${routeIds.length} routes vào ngày ${date.toISOString()}...`);
+  private async findExistingTrips(
+    routeIds: number[],
+    date: Date,
+  ): Promise<Trip[]> {
+    console.log(
+      `Tìm trip đã tồn tại cho ${routeIds.length} routes vào ngày ${date.toISOString()}...`,
+    );
 
     const nextDay = new Date(date);
     nextDay.setDate(nextDay.getDate() + 1);
@@ -361,10 +395,13 @@ export class TripService {
       .leftJoinAndSelect('trip.company', 'company')
       .leftJoinAndSelect('trip.seat_map', 'seat_map')
       .where('trip.route_id IN (:...routeIds)', { routeIds })
-      .andWhere('trip.date_departure >= :startDate AND trip.date_departure < :endDate', {
-        startDate: date,
-        endDate: nextDay,
-      })
+      .andWhere(
+        'trip.date_departure >= :startDate AND trip.date_departure < :endDate',
+        {
+          startDate: date,
+          endDate: nextDay,
+        },
+      )
       .orderBy('trip.time_departure', 'ASC')
       .getMany();
 
@@ -465,40 +502,49 @@ export class TripService {
 
   async getTripDetailOnPlatform(id: number): Promise<DTO_RP_TripDetail> {
     console.log('[1] Bắt đầu lấy thông tin chuyến đi với ID:', id);
-  
+
     // 1. Lấy thông tin trip từ database
     console.log('[2] Truy vấn thông tin trip từ database...');
     const trip = await this.tripRepository.findOne({
       where: { id },
       relations: ['seat_map', 'seat_map.seats', 'tickets', 'route', 'company'],
     });
-  
+
     if (!trip) {
       console.error('[ERROR] Không tìm thấy trip với ID:', id);
       throw new NotFoundException(`Trip với ID ${id} không tồn tại`);
     }
-  
+
     console.log('[3] Đã tìm thấy trip:', {
       id: trip.id,
       seat_map_id: trip.seat_map?.id,
       ticket_count: trip.tickets?.length,
     });
-  
+
     // 2. Kiểm tra nếu chưa có tickets
     if (!trip.tickets || trip.tickets.length === 0) {
       console.log('[4] Trip chưa có tickets, bắt đầu quy trình tạo mới');
-  
-      if (!trip.seat_map || !trip.seat_map.seats || trip.seat_map.seats.length === 0) {
-        console.error('[ERROR] Trip không có seat_map hoặc seat_map không có seats');
+
+      if (
+        !trip.seat_map ||
+        !trip.seat_map.seats ||
+        trip.seat_map.seats.length === 0
+      ) {
+        console.error(
+          '[ERROR] Trip không có seat_map hoặc seat_map không có seats',
+        );
         throw new Error('Trip không có seat_map hoặc không có seats');
       }
-  
+
       console.log('[5] Đã xác định seat_map:', {
         seat_map_id: trip.seat_map.id,
         seat_map_name: trip.seat_map.name,
       });
-  
-      console.log('[6] Đã xác định số lượng seats:', trip.seat_map.seats.length);
+
+      console.log(
+        '[6] Đã xác định số lượng seats:',
+        trip.seat_map.seats.length,
+      );
       const basePrice = trip.route.base_price || 0;
       console.log('[6-1] Đã xác định giá vé cơ bản:', basePrice);
       // 3. Tạo tickets từ seats
@@ -516,7 +562,7 @@ export class TripService {
           company: trip.company,
         });
       });
-  
+
       // 4. Lưu tickets vào database
       console.log('[8] Bắt đầu lưu tickets vào database...');
       try {
@@ -526,18 +572,21 @@ export class TripService {
         console.error('[ERROR] Lỗi khi lưu tickets:', error);
         throw new Error('Không thể tạo tickets');
       }
-  
+
       // 5. Cập nhật lại danh sách tickets
       console.log('[10] Truy vấn lại danh sách tickets...');
       trip.tickets = await this.ticketRepository.find({
         where: { trip: { id } },
       });
-  
-      console.log('[11] Đã cập nhật danh sách tickets mới:', trip.tickets.length);
+
+      console.log(
+        '[11] Đã cập nhật danh sách tickets mới:',
+        trip.tickets.length,
+      );
     } else {
       console.log('[4] Trip đã có sẵn tickets, số lượng:', trip.tickets.length);
     }
-  
+
     // 6. Chuẩn bị dữ liệu response theo DTO
     console.log('[12] Chuẩn bị dữ liệu response...');
     const result: DTO_RP_TripDetail = {
@@ -557,8 +606,209 @@ export class TripService {
         base_price: ticket.base_price || 0,
       })),
     };
-  
+
     console.log('[13] Hoàn thành xử lý. Kết quả:', result);
     return result;
+  }
+
+  async getTripsByDateAndRoute(data: {
+    date: string;
+    company_id: number;
+    route_id: number;
+  }): Promise<DTO_RP_ListTrip[]> {
+    console.log('1. Bắt đầu hàm getTripsByDateAndRoute');
+
+    try {
+      // 1. Validate input
+      console.log('2. Kiểm tra dữ liệu đầu vào');
+      const { date, company_id, route_id } = data;
+
+      if (!date) {
+        throw new HttpException('Thiếu ngày', HttpStatus.BAD_REQUEST);
+      }
+      if (!company_id) {
+        throw new HttpException('Thiếu company_id', HttpStatus.BAD_REQUEST);
+      }
+      if (!route_id) {
+        throw new HttpException('Thiếu route_id', HttpStatus.BAD_REQUEST);
+      }
+
+      // 2. Parse date
+      console.log('3. Parse ngày');
+      const searchDate = new Date(date);
+      if (isNaN(searchDate.getTime())) {
+        throw new HttpException('Ngày không hợp lệ', HttpStatus.BAD_REQUEST);
+      }
+
+      // 3. Start transaction
+      console.log('4. Bắt đầu transaction');
+      return await this.tripRepository.manager.transaction(async (manager) => {
+        const tripRepo = manager.getRepository(Trip);
+        const scheduleRepo = manager.getRepository(Schedule);
+        const ticketRepo = manager.getRepository(Ticket);
+
+        // 4. Check company and route existence
+        console.log('5. Kiểm tra tồn tại company và route');
+        const [company, route] = await Promise.all([
+          manager.getRepository(Company).findOneBy({ id: company_id }),
+          manager.getRepository(Route).findOneBy({ id: route_id }),
+        ]);
+
+        if (!company) {
+          throw new HttpException(
+            'Công ty không tồn tại',
+            HttpStatus.NOT_FOUND,
+          );
+        }
+        if (!route) {
+          throw new HttpException(
+            'Tuyến đường không tồn tại',
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
+        // 5. Find active schedules
+        console.log('6. Tìm active schedules');
+        const activeSchedules = await scheduleRepo.find({
+          where: [
+            {
+              company: { id: company_id },
+              route: { id: route_id },
+              start_date: LessThanOrEqual(searchDate),
+              end_date: IsNull(),
+            },
+            {
+              company: { id: company_id },
+              route: { id: route_id },
+              start_date: LessThanOrEqual(searchDate),
+              end_date: MoreThanOrEqual(searchDate),
+            },
+          ],
+          relations: ['seat_map', 'seat_map.seats'],
+        });
+
+        console.log(`7. Tìm thấy ${activeSchedules.length} schedules`);
+
+        // 6. Process each schedule
+        const trips = [];
+        for (const schedule of activeSchedules) {
+          console.log(`8. Xử lý schedule ${schedule.id}`);
+
+          let trip = await tripRepo.findOne({
+            where: {
+              schedule: { id: schedule.id },
+              date_departure: Between(
+                new Date(searchDate.setHours(0, 0, 0, 0)),
+                new Date(searchDate.setHours(23, 59, 59, 999)),
+              ),
+            },
+            relations: ['tickets'],
+          });
+
+          if (!trip) {
+            console.log('9. Tạo trip mới');
+            trip = await tripRepo.save(
+              tripRepo.create({
+                company: { id: company_id },
+                schedule,
+                route: { id: route_id },
+                seat_map: schedule.seat_map,
+                time_departure: schedule.start_time,
+                date_departure: searchDate,
+              }),
+            );
+          }
+
+          if (
+            schedule.seat_map?.seats?.length > 0 &&
+            (!trip.tickets || trip.tickets.length === 0)
+          ) {
+            console.log(`10. Tạo ${schedule.seat_map.seats.length} tickets`);
+
+            if (!trip.id) {
+              throw new HttpException(
+                'Trip chưa có ID',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+              );
+            }
+
+            let route = schedule.route;
+            if (!route) {
+              route = await manager
+                .getRepository(Route)
+                .findOneBy({ id: schedule.route_id });
+              if (!route) {
+                throw new HttpException(
+                  'Không tìm thấy thông tin tuyến đường',
+                  HttpStatus.NOT_FOUND,
+                );
+              }
+            }
+
+            const basePrice = route?.base_price || 0;
+
+            const tickets = schedule.seat_map.seats.map((seat) => {
+              const ticket = new Ticket();
+              ticket.seat_name = seat.name;
+              ticket.seat_code = seat.code;
+              ticket.seat_floor = seat.floor;
+              ticket.seat_row = seat.row;
+              ticket.seat_column = seat.column;
+              ticket.seat_status = seat.status;
+              ticket.base_price = basePrice;
+
+              ticket.company = { id: company_id } as Company;
+              ticket.trip = { id: trip.id } as Trip;
+
+              return ticket;
+            });
+            await ticketRepo.save(tickets);
+          }
+
+          trips.push(trip);
+        }
+
+        // 7. Return full trip data
+        console.log('11. Lấy thông tin đầy đủ các trips');
+        const tripsData = await tripRepo.find({
+          where: { id: In(trips.map((t) => t.id)) },
+          relations: ['company', 'schedule', 'route', 'seat_map', 'tickets'],
+          order: { time_departure: 'ASC' },
+        });
+
+        const result: DTO_RP_ListTrip[] = tripsData.map((trip) => ({
+          id: trip.id,
+          time_departure: trip.time_departure,
+          date_departure: trip.date_departure,
+          total_ticket: trip.tickets?.length || 0,
+          total_ticket_booking:
+            trip.tickets?.filter(
+              (ticket) => ticket.status_booking_ticket === true,
+            ).length || 0,
+          seat_map: trip.seat_map
+            ? {
+                id: trip.seat_map.id,
+                name: trip.seat_map.name,
+              }
+            : undefined,
+          route: trip.route
+            ? {
+                id: trip.route.id,
+                name: trip.route.name,
+              }
+            : undefined,
+        }));
+
+        console.log('12. Kết thúc hàm thành công');
+        return result;
+      });
+    } catch (error) {
+      console.error('Lỗi trong getTripsByDateAndRoute:', {
+        error: error.message,
+        stack: error.stack,
+      });
+      if (error instanceof HttpException) throw error;
+      throw new HttpException('Lỗi hệ thống', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

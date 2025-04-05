@@ -62,3 +62,19 @@ export class DTO_RP_Ticket {
   seat_status: boolean;
   base_price: number;
 }
+
+export class DTO_RP_ListTrip {
+  id: number;
+  time_departure: string;
+  date_departure: Date;
+  total_ticket: number;
+  total_ticket_booking: number;
+  seat_map: {
+    id: number;
+    name: string;
+  }
+  route: {
+    id: number;
+    name: string;
+  }
+}

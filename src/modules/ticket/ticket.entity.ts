@@ -31,6 +31,9 @@ export class Ticket {
   @Column()
   seat_status: boolean;
 
+  @Column()
+  status_booking_ticket: boolean; 
+
   @ManyToOne(() => Company, (company) => company.tickets)
   @JoinColumn({ name: 'company_id' })
   company: Company;
