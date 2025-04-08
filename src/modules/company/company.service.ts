@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { DTO_RP_Company, DTO_RQ_Company } from './company.dto';
 import { RedisService } from 'src/config/redis.service';
 import { stat } from 'fs';
+import { Policy } from './policy.entity';
 
 @Injectable()
 export class CompanyService {
@@ -12,6 +13,9 @@ export class CompanyService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly redisService: RedisService,
+
+    @InjectRepository(Policy)
+    private readonly policyRepository: Repository<Policy>,
   ) {}
 
   // Tạo công ty mới data lưu vào PostgreSQL và Redis
@@ -212,4 +216,62 @@ export class CompanyService {
       created_at: company.created_at.toISOString(),
     };
   }
+
+  async createPolicy(
+    company_id: number,
+    policy: any,
+  ): Promise<any> {
+    const company = await this.companyRepository.findOne({
+      where: { id: company_id },
+    });
+  
+    if (!company) {
+      throw new HttpException(
+        'Không tìm thấy dữ liệu công ty!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  
+    const existingPolicy = await this.policyRepository.findOne({
+      where: { company: { id: company_id } },
+    });
+  
+    if (existingPolicy) {
+      existingPolicy.content = policy.content;
+      return await this.policyRepository.save(existingPolicy);
+    } else {
+      const newPolicy = this.policyRepository.create({
+        content: policy.content,
+        company: company,
+      });
+      return await this.policyRepository.save(newPolicy);
+    }
+  }
+
+  async getPolicy(company_id: number): Promise<any> {
+    const company = await this.companyRepository.findOne({
+      where: { id: company_id },
+    });
+  
+    if (!company) {
+      throw new HttpException(
+        'Không tìm thấy dữ liệu công ty!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  
+    const policy = await this.policyRepository.findOne({
+      where: { company: { id: company_id } },
+    });
+  
+    if (!policy) {
+      throw new HttpException(
+        'Không tìm thấy dữ liệu chính sách!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  
+    return policy;
+  }
+  
 }

@@ -84,4 +84,33 @@ export class CompanyController {
       return handleError(error);
     }
   }
+
+  @MessagePattern('create_policy')
+  async createPolicy(
+    @Payload() data: { id: number; data: any },
+  ): Promise<ApiResponse<any>> {
+    try {
+      console.log('Received Data ID: ', data.id);
+      console.log('Received Data Policy: ', data.data);
+      const response = await this.companyService.createPolicy(
+        data.id,
+        data.data,
+      );
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('get_policy')
+  async getPolicy(
+    @Payload() data: number,
+  ): Promise<ApiResponse<any>> {
+    try {
+      const response = await this.companyService.getPolicy(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
 }
