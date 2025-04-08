@@ -45,4 +45,19 @@ export class Ticket {
   @Column({ type: 'float' })
   base_price: number;
 
+  @Column()
+  passenger_name: string;
+
+  @Column()
+  passenger_phone: string;
+
+  @Column()
+  point_up: string;
+
+  @Column()
+  point_down: string;
+
+  @Column()
+  ticket_note: string;
+
 }

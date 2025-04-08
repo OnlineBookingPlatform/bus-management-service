@@ -78,3 +78,12 @@ export class DTO_RP_ListTrip {
     name: string;
   }
 }
+
+export interface DTO_RP_TripPoint {
+  id: number;
+  name: string;
+  address: string;
+  display_order: number;
+  time_point: string;
+  start_time: string;
+}

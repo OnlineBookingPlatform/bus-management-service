@@ -15,5 +15,6 @@ import { TicketModule } from "../ticket/ticket.module";
     imports: [TypeOrmModule.forFeature([Trip]), CompanyModule, RouteModule, SeatModule, ScheduleModule, PointModule, LocationModule, TicketModule],
     controllers: [TripController],
     providers: [TripService],
+    exports: [TripService, TypeOrmModule],
 })
 export class TripModule {}
