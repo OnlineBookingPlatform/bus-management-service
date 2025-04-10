@@ -36,6 +36,8 @@ export class Company {
   code: string;
   @Column()
   note: string;
+  @Column()
+  url_vehicle_online: string;
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 

@@ -55,6 +55,7 @@ export class CompanyService {
       url_logo: newCompany.url_logo,
       code: newCompany.code,
       note: newCompany.note,
+      url_vehicle_online: newCompany.url_vehicle_online,
       created_at: newCompany.created_at.toISOString(),
     };
   }
@@ -81,6 +82,7 @@ export class CompanyService {
       url_logo: company.url_logo,
       code: company.code,
       note: company.note,
+      url_vehicle_online: company.url_vehicle_online,
       created_at: company.created_at.toISOString(),
     }));
     return companiesMapped;
@@ -139,6 +141,7 @@ export class CompanyService {
       url_logo: updatedCompany.url_logo,
       code: updatedCompany.code,
       note: updatedCompany.note,
+      url_vehicle_online: updatedCompany.url_vehicle_online,
       created_at: updatedCompany.created_at.toISOString(),
     };
   }
@@ -185,6 +188,7 @@ export class CompanyService {
       url_logo: company.url_logo,
       code: company.code,
       note: company.note,
+      url_vehicle_online: company.url_vehicle_online,
       created_at: company.created_at.toISOString(),
     };
   }
@@ -213,6 +217,7 @@ export class CompanyService {
       url_logo: company.url_logo,
       code: company.code,
       note: company.note,
+      url_vehicle_online: company.url_vehicle_online,
       created_at: company.created_at.toISOString(),
     };
   }

@@ -30,5 +30,6 @@ export class DTO_RP_Company {
   url_logo: string;
   code: string;
   note: string;
+  url_vehicle_online: string;
   created_at: string;
 }
