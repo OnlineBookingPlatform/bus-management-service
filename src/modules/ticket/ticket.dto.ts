@@ -9,3 +9,7 @@ export class DTO_RP_Ticekt {
     status_booking_ticket: boolean;
     base_price: number;
 }
+
+export class DTO_RQ_TicketId {
+    id: number;
+}

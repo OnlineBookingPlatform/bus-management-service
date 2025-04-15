@@ -740,6 +740,7 @@ export class TripService {
         seat_column: ticket.seat_column,
         seat_status: ticket.seat_status,
         base_price: ticket.base_price || 0,
+        status_booking_ticket: ticket.status_booking_ticket || false,
       })),
     };
 

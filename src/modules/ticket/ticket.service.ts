@@ -1,9 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ticket } from './ticket.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { DTO_RP_Ticket } from '../trip/trip.dto';
 import { Trip } from '../trip/trip.entity';
+import { DTO_RQ_TicketId } from './ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -41,4 +42,78 @@ export class TicketService {
     console.log('result:', result);
     return result;
   }
+
+  async changeTicketBooked(data: DTO_RQ_TicketId[]): Promise<void> {
+    console.log('👉 Bắt đầu xử lý changeTicketBooked với dữ liệu:', data);
+  
+    const ids = data.map((item) => item.id);
+    console.log('🆔 Danh sách ID cần xử lý:', ids);
+  
+    const tickets = await this.ticketRepository.findBy({ id: In(ids) });
+    console.log('📦 Vé lấy từ DB:', tickets);
+  
+    if (tickets.length !== ids.length) {
+      console.error('❌ Một hoặc nhiều vé không tồn tại trong DB!');
+      throw new HttpException('Dữ liệu vé không tồn tại', HttpStatus.NOT_FOUND);
+    }
+  
+    // ✅ Kiểm tra nếu tất cả vé đều chưa được đặt (status_booking_ticket === false)
+    const allTicketsAreAvailable = tickets.every(
+      (ticket) => ticket.status_booking_ticket === false,
+    );
+    console.log('🟢 Tất cả vé có đang ở trạng thái chưa đặt không?', allTicketsAreAvailable);
+  
+    if (!allTicketsAreAvailable) {
+      console.error('❌ Có ít nhất 1 vé đã được đặt → huỷ thao tác!');
+      throw new HttpException('Có vé đã được đặt', HttpStatus.CONFLICT);
+    }
+  
+    for (const ticket of tickets) {
+      console.log(`✅ Đang cập nhật vé ID ${ticket.id} → set status_booking_ticket = true`);
+      ticket.status_booking_ticket = true;
+    }
+  
+    console.log('💾 Đang lưu các vé đã cập nhật vào DB...');
+    await this.ticketRepository.save(tickets);
+  
+    console.log('🎉 Cập nhật vé thành công!');
+  }
+
+  async changeTicketAvailable(data: DTO_RQ_TicketId[]): Promise<void> {
+    console.log('👉 Bắt đầu xử lý changeTicketAvailable với dữ liệu:', data);
+  
+    const ids = data.map((item) => item.id);
+    console.log('🆔 Danh sách ID cần xử lý:', ids);
+  
+    const tickets = await this.ticketRepository.findBy({ id: In(ids) });
+    console.log('📦 Vé lấy từ DB:', tickets);
+  
+    if (tickets.length !== ids.length) {
+      console.error('❌ Một hoặc nhiều vé không tồn tại trong DB!');
+      throw new HttpException('Dữ liệu vé không tồn tại', HttpStatus.NOT_FOUND);
+    }
+  
+    // ✅ Kiểm tra nếu tất cả vé đều đã được đặt (status_booking_ticket === true)
+    const allTicketsAreBooked = tickets.every(
+      (ticket) => ticket.status_booking_ticket === true,
+    );
+    console.log('🟢 Tất cả vé có đang ở trạng thái đã đặt không?', allTicketsAreBooked);
+  
+    if (!allTicketsAreBooked) {
+      console.error('❌ Có ít nhất 1 vé chưa được đặt → huỷ thao tác!');
+      throw new HttpException('Có vé chưa được đặt', HttpStatus.CONFLICT);
+    }
+  
+    for (const ticket of tickets) {
+      console.log(`✅ Đang cập nhật vé ID ${ticket.id} → set status_booking_ticket = false`);
+      ticket.status_booking_ticket = false;
+    }
+  
+    console.log('💾 Đang lưu các vé đã cập nhật vào DB...');
+    await this.ticketRepository.save(tickets);
+  
+    console.log('🎉 Cập nhật vé thành công!');
+  }
+  
+  
 }
