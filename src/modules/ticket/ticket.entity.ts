@@ -60,4 +60,13 @@ export class Ticket {
   @Column()
   ticket_note: string;
 
+  @Column()
+  creator_by: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  gender: number;
+
 }
