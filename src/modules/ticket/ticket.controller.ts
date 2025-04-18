@@ -52,4 +52,15 @@ export class TicketController {
       return handleError(error);
     }
   }
+
+  @MessagePattern('update_ticket_info_on_bms')
+  async updateTicketInfoOnBMS(
+    @Payload() data: any): Promise<ApiResponse<void>> {
+    try {
+      const response = await this.ticketService.updateTicketInfoOnBMS(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
 }

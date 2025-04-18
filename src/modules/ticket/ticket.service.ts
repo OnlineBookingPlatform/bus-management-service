@@ -149,5 +149,9 @@ export class TicketService {
     console.log('🎉 Cập nhật vé thành công!');
   }
   
+  async updateTicketInfoOnBMS(data: any): Promise<void> {
+    console.log("Booking Data:", data)
+    return null;
+  }
   
 }
