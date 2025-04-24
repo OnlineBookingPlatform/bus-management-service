@@ -137,7 +137,9 @@ export class TicketService {
         ticket.point_up = updateData.point_up;
         ticket.point_down = updateData.point_down;
         ticket.ticket_note = updateData.ticket_note;
-        ticket.creator_by = "VinaHome";
+        ticket.creator_by_id = updateData.passenger_id;
+        ticket.payment_method = 1;
+        ticket.creator_by_name = "VinaHome";
         ticket.email = updateData.email;
         ticket.gender = updateData.gender;
       }

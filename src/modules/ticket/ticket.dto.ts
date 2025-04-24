@@ -15,6 +15,7 @@ export class DTO_RQ_TicketId {
 }
 export class DTO_RQ_UpdateTicketOnPlatform {
     id: number;
+    passenger_id: string;
     passenger_name: string;
     passenger_phone: string;
     point_up: string;

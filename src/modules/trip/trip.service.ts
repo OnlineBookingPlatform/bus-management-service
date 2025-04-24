@@ -538,6 +538,15 @@ export class TripService {
               trip: trip,
               company: trip.company,
               status_booking_ticket: false,
+
+              // passenger_name: null,
+              // passenger_phone: null,
+              // point_up: null,
+              // point_down: null,
+              // ticket_note: null,
+              // creator_by: null,
+              // email: null,
+              // gender: null,
             });
           });
 
@@ -583,20 +592,8 @@ export class TripService {
           company: trip.company,
           seat_map: trip.seat_map,
           tickets_available: trip.tickets?.filter(
-            (ticket) => ticket.status_booking_ticket === false,
+            (ticket) => ticket.status_booking_ticket === false
           ).length,
-          // tickets:
-          //   trip.tickets?.map((ticket) => ({
-          //     id: ticket.id,
-          //     seat_name: ticket.seat_name,
-          //     seat_code: ticket.seat_code,
-          //     seat_floor: ticket.seat_floor,
-          //     seat_row: ticket.seat_row,
-          //     seat_column: ticket.seat_column,
-          //     seat_status: ticket.seat_status,
-          //     base_price: ticket.base_price,
-          //     status_booking_ticket: ticket.status_booking_ticket,
-          //   })) || [],
         };
 
         if (departurePoint && destinationPoint) {

@@ -52,21 +52,27 @@ export class Ticket {
   passenger_phone: string;
 
   @Column()
-  point_up: string;
+  point_up?: string;
 
   @Column()
-  point_down: string;
+  point_down?: string;
 
   @Column()
-  ticket_note: string;
+  ticket_note?: string;
 
   @Column()
-  creator_by: string;
+  creator_by_id?: string;
 
   @Column()
-  email: string;
+  creator_by_name?: string;
 
   @Column()
-  gender: number;
+  email?: string;
+
+  @Column()
+  gender?: number;
+
+  @Column()
+  payment_method?: number;
 
 }
