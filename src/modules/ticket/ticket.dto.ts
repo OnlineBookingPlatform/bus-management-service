@@ -8,6 +8,16 @@ export class DTO_RP_Ticekt {
     seat_status: boolean;
     status_booking_ticket: boolean;
     base_price: number;
+
+    passenger_name: string;
+    passenger_phone: string;
+    point_up: string;
+    point_down: string;
+    ticket_note: string;
+    email: string;
+    gender: number;
+    creator_by_name: string;
+    payment_method: number;
 }
 
 export class DTO_RQ_TicketId {
