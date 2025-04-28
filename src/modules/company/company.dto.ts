@@ -33,3 +33,12 @@ export class DTO_RP_Company {
   url_vehicle_online: string;
   created_at: string;
 }
+
+export class DTO_RQ_RegisterSaleTicketOnPlatform {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  note: string;
+  bus_company_name: string;
+}

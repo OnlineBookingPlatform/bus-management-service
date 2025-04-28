@@ -2,10 +2,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Company } from './company.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DTO_RP_Company, DTO_RQ_Company } from './company.dto';
+import { DTO_RP_Company, DTO_RQ_Company, DTO_RQ_RegisterSaleTicketOnPlatform } from './company.dto';
 import { RedisService } from 'src/config/redis.service';
 import { stat } from 'fs';
 import { Policy } from './policy.entity';
+import { RegisterSaleTicket } from './register_sale_ticket.entity';
 
 @Injectable()
 export class CompanyService {
@@ -16,6 +17,9 @@ export class CompanyService {
 
     @InjectRepository(Policy)
     private readonly policyRepository: Repository<Policy>,
+
+    @InjectRepository(RegisterSaleTicket)
+    private readonly registerSaleTicketRepository: Repository<RegisterSaleTicket>,
   ) {}
 
   // Tạo công ty mới data lưu vào PostgreSQL và Redis
@@ -278,5 +282,26 @@ export class CompanyService {
   
     return policy;
   }
+
+
+  // Đăng ký vé trên nền tảng
+  async registerSaleTicketOnPlatform(
+    data: DTO_RQ_RegisterSaleTicketOnPlatform,
+  ): Promise<void> {
+    console.log('Received Data: ', data);
+  
+    const newRegister = this.registerSaleTicketRepository.create({
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      address: data.address,
+      note: data.note,
+      bus_company_name: data.bus_company_name,
+      status: 1,
+    });
+  
+    await this.registerSaleTicketRepository.save(newRegister);
+  }
+  
   
 }
