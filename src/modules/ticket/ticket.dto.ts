@@ -34,3 +34,23 @@ export class DTO_RQ_UpdateTicketOnPlatform {
     email: string;
     gender: number;
 }
+
+export interface DTO_RQ_TicketSearch {
+    phone: string;
+    code: number;
+  }
+  export interface DTO_RP_TicketSearch {
+    id: number;
+    passenger_name: string;
+    passenger_phone: string;
+    point_up: string;
+    point_down: string;
+    email: string;
+    base_price: number;
+    payment_method: number;
+    seat_name: string;
+    route_name: string;
+    license_plate: string;
+    start_time: string;
+    start_date: string;
+  }

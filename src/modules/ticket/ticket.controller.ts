@@ -4,7 +4,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { handleError } from 'src/utils/error-handler';
 import { ApiResponse } from 'src/utils/api-response';
 import { DTO_RP_Ticket } from '../trip/trip.dto';
-import { DTO_RQ_TicketId, DTO_RQ_UpdateTicketOnPlatform } from './ticket.dto';
+import { DTO_RP_TicketSearch, DTO_RQ_TicketId, DTO_RQ_TicketSearch, DTO_RQ_UpdateTicketOnPlatform } from './ticket.dto';
 
 @Controller()
 export class TicketController {
@@ -63,4 +63,17 @@ export class TicketController {
       return handleError(error);
     }
   }
+
+  @MessagePattern('search_ticket_on_platform')
+  async searchTicketOnPlatform(
+    @Payload() data: DTO_RQ_TicketSearch): Promise<ApiResponse<DTO_RP_TicketSearch>> {
+    try {
+      const response = await this.ticketService.searchTicketOnPlatform(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+
 }

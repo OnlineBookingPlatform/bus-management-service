@@ -4,7 +4,7 @@ import { Ticket } from './ticket.entity';
 import { In, Repository } from 'typeorm';
 import { DTO_RP_Ticket } from '../trip/trip.dto';
 import { Trip } from '../trip/trip.entity';
-import { DTO_RQ_TicketId, DTO_RQ_UpdateTicketOnPlatform } from './ticket.dto';
+import { DTO_RP_TicketSearch, DTO_RQ_TicketId, DTO_RQ_TicketSearch, DTO_RQ_UpdateTicketOnPlatform } from './ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -165,6 +165,58 @@ export class TicketService {
   async updateTicketInfoOnBMS(data: any): Promise<void> {
     console.log("Booking Data:", data)
     return null;
+  }
+
+  // Tra cứu thông tin vé trên nền tảng
+  async searchTicketOnPlatform(data: DTO_RQ_TicketSearch): Promise<DTO_RP_TicketSearch> {
+    try {
+      console.log('data:', data);
+      const { phone, code } = data;
+      
+      if (!phone && !code) {
+        throw new HttpException('Vui lòng cung cấp số điện thoại hoặc mã vé', HttpStatus.BAD_REQUEST);
+      }
+      const numericCode = code ? Number(code) : undefined;
+      if (code && isNaN(numericCode)) {
+        throw new HttpException('Mã vé không hợp lệ', HttpStatus.BAD_REQUEST);
+      }
+      console.log('numericCode:', numericCode);
+      const ticket = await this.ticketRepository.findOne({
+        where: {
+          id: numericCode,
+          passenger_phone: phone,
+        },
+        relations: ['trip', 'trip.route'],
+      });
+
+      if (!ticket) {
+        throw new HttpException('Không tìm thấy thông tin vé', HttpStatus.NOT_FOUND);
+      }
+
+      const response: DTO_RP_TicketSearch = {
+        id: ticket.id,
+        passenger_name: ticket.passenger_name,
+        passenger_phone: ticket.passenger_phone,
+        point_up: ticket.point_up,
+        point_down: ticket.point_down,
+        email: ticket.email,
+        base_price: ticket.base_price,
+        payment_method: ticket.payment_method,
+        seat_name: ticket.seat_name,
+        route_name: ticket.trip.route.name,
+        license_plate: null,
+        start_time: ticket.trip.time_departure.toString(),
+        start_date: ticket.trip.date_departure.toString(),
+      };
+      console.log('response:', response);
+      return response;
+    } catch (error) {
+      console.error('Lỗi khi tìm kiếm vé:', error);
+      throw new HttpException(
+        'Đã xảy ra lỗi khi tìm kiếm vé',
+        HttpStatus.INTERNAL_SERVER_ERROR,)
+    }
+
   }
 
 }
