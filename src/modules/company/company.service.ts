@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Company } from './company.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DTO_RP_Company, DTO_RQ_Company, DTO_RQ_RegisterSaleTicketOnPlatform } from './company.dto';
+import { DTO_RP_Company, DTO_RP_RegisterSaleTicketOnPlatform, DTO_RQ_Company, DTO_RQ_RegisterSaleTicketOnPlatform } from './company.dto';
 import { RedisService } from 'src/config/redis.service';
 import { stat } from 'fs';
 import { Policy } from './policy.entity';
@@ -301,6 +301,22 @@ export class CompanyService {
     });
   
     await this.registerSaleTicketRepository.save(newRegister);
+  }
+
+  // Lấy danh sách yêu cầu đăng ký mở bán vé trên nền tảng
+  async getSaleTicketOnPlatform(): Promise<DTO_RP_RegisterSaleTicketOnPlatform[]> {
+    const registerSaleTickets = await this.registerSaleTicketRepository.find();
+    return registerSaleTickets.map((ticket) => ({
+      id: ticket.id,
+      name: ticket.name,
+      phone: ticket.phone,
+      email: ticket.email,
+      address: ticket.address,
+      note: ticket.note,
+      bus_company_name: ticket.bus_company_name,
+      status: ticket.status,
+      created_at: ticket.created_at.toISOString(),
+    }));
   }
   
   

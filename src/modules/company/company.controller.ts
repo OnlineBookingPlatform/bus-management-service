@@ -1,7 +1,7 @@
 import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { DTO_RP_Company, DTO_RQ_Company, DTO_RQ_RegisterSaleTicketOnPlatform } from './company.dto';
+import { DTO_RP_Company, DTO_RP_RegisterSaleTicketOnPlatform, DTO_RQ_Company, DTO_RQ_RegisterSaleTicketOnPlatform } from './company.dto';
 import { ApiResponse } from 'src/utils/api-response';
 import { handleError } from 'src/utils/error-handler';
 
@@ -121,6 +121,17 @@ export class CompanyController {
   ): Promise<ApiResponse<void>> {
     try {
       const response = await this.companyService.registerSaleTicketOnPlatform(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  // Lấy dánh sach yêu cầu đăng ký mở bán vé trên nền tảng
+  @MessagePattern('get_sale_ticket_on_platform')
+  async getSaleTicketOnPlatform(): Promise<ApiResponse<DTO_RP_RegisterSaleTicketOnPlatform[]>>{
+    try {
+      const response = await this.companyService.getSaleTicketOnPlatform();
       return ApiResponse.success(response);
     } catch (error) {
       return handleError(error);

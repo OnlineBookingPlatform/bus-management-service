@@ -42,3 +42,15 @@ export class DTO_RQ_RegisterSaleTicketOnPlatform {
   note: string;
   bus_company_name: string;
 }
+
+export interface DTO_RP_RegisterSaleTicketOnPlatform {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  note: string;
+  bus_company_name: string;
+  status: number;
+  created_at: string;
+}
