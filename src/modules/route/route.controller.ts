@@ -2,7 +2,7 @@ import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { RouteService } from './route.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { handleError } from 'src/utils/error-handler';
-import { DTO_RP_Route, DTO_RP_RouteName, DTO_RQ_Route } from './route.dto';
+import { DTO_RP_Route, DTO_RP_RouteName, DTO_RP_RoutePopular, DTO_RQ_Route, DTO_RQ_RoutePopular } from './route.dto';
 import { ApiResponse } from 'src/utils/api-response';
 
 @Controller()
@@ -76,6 +76,30 @@ export class RouteController {
   ): Promise<ApiResponse<DTO_RP_Route[]>> {
     try {
       const response = await this.routeService.moveTopRoute(id);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  // Tạo tuyến phổ biến
+  @MessagePattern('create_route_popular')
+  async createRoutePopular(
+    @Payload() data: DTO_RQ_RoutePopular,
+  ): Promise<ApiResponse<DTO_RP_RoutePopular>> {
+    try {
+      const response = await this.routeService.createRoutePopular(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  // Lấy danh sách tuyến phổ biến
+  @MessagePattern('get_list_route_popular')
+  async getListRoutePopular(): Promise<ApiResponse<DTO_RP_RoutePopular[]>> {
+    try {
+      const response = await this.routeService.getListRoutePopular();
       return ApiResponse.success(response);
     } catch (error) {
       return handleError(error);

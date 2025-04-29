@@ -1,9 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Company } from '../company/company.entity';
-import { DTO_RP_Route, DTO_RP_RouteName, DTO_RQ_Route } from './route.dto';
+import { DTO_RP_Route, DTO_RP_RouteName, DTO_RP_RoutePopular, DTO_RQ_Route, DTO_RQ_RoutePopular } from './route.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Route } from './route.entity';
+import { RoutePopular } from './route_popular.entity';
 
 @Injectable()
 export class RouteService {
@@ -12,6 +13,8 @@ export class RouteService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Route)
     private readonly routeRepository: Repository<Route>,
+    @InjectRepository(RoutePopular)
+    private readonly routePopularRepository: Repository<RoutePopular>,
   ) {}
 
   async getRouteByCompanyId(id: number): Promise<DTO_RP_Route[]> {
@@ -276,6 +279,44 @@ export class RouteService {
       note: route.note,
       created_at: route.created_at.toISOString(),
     }));
+  }
+
+
+  // Tạo tuyến phổ biến
+  async createRoutePopular(data: DTO_RQ_RoutePopular): Promise<DTO_RP_RoutePopular> {
+    console.log('Received data:', data);
+    const newRoute = this.routePopularRepository.create({
+      name: data.name,
+      url_avatar: data.url_avatar,
+      base_price: data.base_price,
+      status: data.status,
+    });
+    const savedRoute = await this.routePopularRepository.save(newRoute);
+    return {
+      id: savedRoute.id,
+      name: savedRoute.name,
+      url_avatar: savedRoute.url_avatar,
+      base_price: savedRoute.base_price,
+      status: savedRoute.status,
+    };
+  }
+
+  // Lấy danh sách tuyến phổ biến
+  async getListRoutePopular(): Promise<DTO_RP_RoutePopular[]> {
+    const routes = await this.routePopularRepository.find();
+    if (!routes || routes.length === 0) {
+      return [];
+    }
+    const mappedRoute = routes.map((route) => {
+      return {
+        id: route.id,
+        name: route.name,
+        url_avatar: route.url_avatar,
+        base_price: route.base_price,
+        status: route.status,
+      };
+    });
+    return mappedRoute;
   }
   
 }

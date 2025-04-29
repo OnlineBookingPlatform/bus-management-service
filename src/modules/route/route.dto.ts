@@ -37,3 +37,18 @@ export class DTO_RP_RouteName {
   id: number;
   name: string;
 }
+
+export class DTO_RQ_RoutePopular {
+  id: number;
+  name: string;
+  url_avatar: string;
+  base_price: number;
+  status: boolean;
+}
+export class DTO_RP_RoutePopular {
+  id?: number;
+  name: string;
+  url_avatar: string;
+  base_price: number;
+  status: boolean;
+}
