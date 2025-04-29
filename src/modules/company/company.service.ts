@@ -305,7 +305,11 @@ export class CompanyService {
 
   // Lấy danh sách yêu cầu đăng ký mở bán vé trên nền tảng
   async getSaleTicketOnPlatform(): Promise<DTO_RP_RegisterSaleTicketOnPlatform[]> {
-    const registerSaleTickets = await this.registerSaleTicketRepository.find();
+    const registerSaleTickets = await this.registerSaleTicketRepository.find({
+      order: {
+        created_at: 'DESC',
+      },
+    });
     return registerSaleTickets.map((ticket) => ({
       id: ticket.id,
       name: ticket.name,
