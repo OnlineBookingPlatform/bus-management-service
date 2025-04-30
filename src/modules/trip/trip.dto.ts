@@ -51,6 +51,7 @@ export class DTO_RP_TripDetail {
   total_row: number;
   total_column: number;
   tickets: DTO_RP_Ticket[];
+  policy_content: string;
 }
 export class DTO_RP_Ticket {
   id: number;
@@ -72,11 +73,11 @@ export class DTO_RP_ListTrip {
   seat_map: {
     id: number;
     name: string;
-  }
+  };
   route: {
     id: number;
     name: string;
-  }
+  };
 }
 
 export interface DTO_RP_TripPoint {

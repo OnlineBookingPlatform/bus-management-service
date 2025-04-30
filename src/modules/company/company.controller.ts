@@ -1,9 +1,15 @@
 import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { DTO_RP_Company, DTO_RP_RegisterSaleTicketOnPlatform, DTO_RQ_Company, DTO_RQ_RegisterSaleTicketOnPlatform } from './company.dto';
+import {
+  DTO_RP_Company,
+  DTO_RP_RegisterSaleTicketOnPlatform,
+  DTO_RQ_Company,
+  DTO_RQ_RegisterSaleTicketOnPlatform,
+} from './company.dto';
 import { ApiResponse } from 'src/utils/api-response';
 import { handleError } from 'src/utils/error-handler';
+import { Company } from './company.entity';
 
 @Controller()
 export class CompanyController {
@@ -32,15 +38,28 @@ export class CompanyController {
     }
   }
 
+  @MessagePattern('get_company')
+  async getCompany(@Payload() data: number): Promise<ApiResponse<Company>> {
+    return await this.companyService.getCompany(data).then(
+      (company) => {
+        return ApiResponse.success(company);
+      },
+      (error) => handleError(error),
+    );
+  }
+
   @MessagePattern('update_company')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async updateCompany(
-    @Payload() data: {id: number, data: DTO_RQ_Company},
+    @Payload() data: { id: number; data: DTO_RQ_Company },
   ): Promise<ApiResponse<DTO_RP_Company>> {
     try {
       console.log('Received Data ID: ', data.id);
       console.log('Received Data Company: ', data.data);
-      const companies = await this.companyService.updateCompany(data.id, data.data);
+      const companies = await this.companyService.updateCompany(
+        data.id,
+        data.data,
+      );
       return ApiResponse.success(companies);
     } catch (error) {
       return handleError(error);
@@ -48,9 +67,7 @@ export class CompanyController {
   }
 
   @MessagePattern('delete_company')
-  async deleteCompany(
-    @Payload() data: number ,
-  ): Promise<ApiResponse<void>> {
+  async deleteCompany(@Payload() data: number): Promise<ApiResponse<void>> {
     try {
       await this.companyService.deleteCompany(data);
       return ApiResponse.success(null);
@@ -85,42 +102,13 @@ export class CompanyController {
     }
   }
 
-  @MessagePattern('create_policy')
-  async createPolicy(
-    @Payload() data: { id: number; data: any },
-  ): Promise<ApiResponse<any>> {
-    try {
-      console.log('Received Data ID: ', data.id);
-      console.log('Received Data Policy: ', data.data);
-      const response = await this.companyService.createPolicy(
-        data.id,
-        data.data,
-      );
-      return ApiResponse.success(response);
-    } catch (error) {
-      return handleError(error);
-    }
-  }
-
-  @MessagePattern('get_policy')
-  async getPolicy(
-    @Payload() data: number,
-  ): Promise<ApiResponse<any>> {
-    try {
-      const response = await this.companyService.getPolicy(data);
-      return ApiResponse.success(response);
-    } catch (error) {
-      return handleError(error);
-    }
-  }
-
-  // Đăng ký vé trên nền tảng
   @MessagePattern('register_sale_ticket_on_platform')
   async registerSaleTicketOnPlatform(
     @Payload() data: DTO_RQ_RegisterSaleTicketOnPlatform,
   ): Promise<ApiResponse<void>> {
     try {
-      const response = await this.companyService.registerSaleTicketOnPlatform(data);
+      const response =
+        await this.companyService.registerSaleTicketOnPlatform(data);
       return ApiResponse.success(response);
     } catch (error) {
       return handleError(error);
@@ -129,7 +117,9 @@ export class CompanyController {
 
   // Lấy dánh sach yêu cầu đăng ký mở bán vé trên nền tảng
   @MessagePattern('get_sale_ticket_on_platform')
-  async getSaleTicketOnPlatform(): Promise<ApiResponse<DTO_RP_RegisterSaleTicketOnPlatform[]>>{
+  async getSaleTicketOnPlatform(): Promise<
+    ApiResponse<DTO_RP_RegisterSaleTicketOnPlatform[]>
+  > {
     try {
       const response = await this.companyService.getSaleTicketOnPlatform();
       return ApiResponse.success(response);

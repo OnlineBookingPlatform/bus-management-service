@@ -14,7 +14,7 @@ import { Point } from '../point/point.entity';
 import { PointOfRoute } from '../point/point_of_route.entity';
 import { Trip } from '../trip/trip.entity';
 import { Ticket } from '../ticket/ticket.entity';
-import { Policy } from './policy.entity';
+import { Policy } from '../policy/policy.entity';
 
 @Entity('tbl_company')
 export class Company {
@@ -70,5 +70,4 @@ export class Company {
 
   @OneToMany(() => Policy, (policy) => policy.company)
   policies: Policy[];
-  
 }

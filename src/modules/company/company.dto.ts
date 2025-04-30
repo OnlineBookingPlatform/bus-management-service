@@ -20,6 +20,7 @@ export class DTO_RQ_Company {
   @IsString()
   note: string;
 }
+
 export class DTO_RP_Company {
   id: number;
   name: string;

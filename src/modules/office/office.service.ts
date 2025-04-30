@@ -32,7 +32,7 @@ export class OfficeService {
     const existingOffice = await this.officeRepository.findOne({
       where: {
         name: office.name,
-        company_id: office.company_id,
+        company: { id: office.company_id },
       },
     });
     // console.log('Existing Office:', existingOffice);
@@ -77,12 +77,15 @@ export class OfficeService {
     }
 
     const offices = await this.officeRepository.find({
-      where: { company_id: id },
+      where: { company: { id } },
     });
+
     console.log(offices);
+
     if (!offices || offices.length === 0) {
       return [];
     }
+
     const mappedOffices = offices.map((office) => {
       console.log('Mapping office:', office);
       return {
@@ -95,7 +98,7 @@ export class OfficeService {
         note: office.note,
         type_ticket: office.type_ticket,
         type_goods: office.type_goods,
-        company_id: office.company_id,
+        company: { id: office.id },
         created_at: office.created_at ? office.created_at.toISOString() : null,
       };
     });
@@ -118,7 +121,7 @@ export class OfficeService {
     }
 
     const offices = await this.officeRepository.find({
-      where: { company_id: companyId },
+      where: { company: { id: companyId } },
     });
 
     const mappedOffices = offices.map((office) => {

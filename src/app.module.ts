@@ -12,6 +12,7 @@ import { LocationModule } from './modules/location/location.module';
 import { PointModule } from './modules/point/point.module';
 import { TripModule } from './modules/trip/trip.module';
 import { TicketModule } from './modules/ticket/ticket.module';
+import { PolicyModule } from './modules/policy/policy.module';
 
 @Module({
   imports: [
@@ -22,10 +23,11 @@ import { TicketModule } from './modules/ticket/ticket.module';
     VehicleModule,
     RouteModule,
     ScheduleModule,
-    LocationModule, 
-    PointModule, 
+    LocationModule,
+    PointModule,
     TripModule,
     TicketModule,
+    PolicyModule,
   ],
   controllers: [],
   providers: [RedisService],

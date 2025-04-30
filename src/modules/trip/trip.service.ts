@@ -22,7 +22,11 @@ import { Route } from '../route/route.entity';
 import { PointOfRoute } from '../point/point_of_route.entity';
 import { Point } from '../point/point.entity';
 import { Province } from '../location/provinces.entity';
-import { DTO_RP_ListTrip, DTO_RP_TripDetail, DTO_RP_TripPoint } from './trip.dto';
+import {
+  DTO_RP_ListTrip,
+  DTO_RP_TripDetail,
+  DTO_RP_TripPoint,
+} from './trip.dto';
 import { Ticket } from '../ticket/ticket.entity';
 import { Seat } from '../seat/seat.entity';
 
@@ -311,15 +315,17 @@ export class TripService {
   // }
 
   async searchTripOnPlatform(data: any): Promise<any> {
-    console.log('════════════════════════════════════════');
-    console.log('BẮT ĐẦU TÌM KIẾM CHUYẾN ĐI');
-    console.log('════════════════════════════════════════');
+    console.log(`
+════════════════════════════════════════
+        BẮT ĐẦU TÌM KIẾM CHUYẾN ĐI      
+════════════════════════════════════════
+
+[1/4] Tìm điểm đón/trả theo tỉnh...
+- Tìm điểm đón thuộc tỉnh ID: ${data.departureId}
+- Tìm điểm trả thuộc tỉnh ID: ${data.destinationId}
+    \n`);
 
     // 1. Tìm điểm đón/trả theo tỉnh
-    console.log('[1/4] Tìm điểm đón/trả theo tỉnh...');
-    console.log(`- Tìm điểm đón thuộc tỉnh ID: ${data.departureId}`);
-    console.log(`- Tìm điểm trả thuộc tỉnh ID: ${data.destinationId}`);
-
     const [departurePoints, destinationPoints] = await Promise.all([
       this.pointRepository.find({
         where: { provinces_id: data.departureId },
@@ -331,16 +337,17 @@ export class TripService {
       }),
     ]);
 
-    console.log('KẾT QUẢ TÌM ĐIỂM:');
-    console.log(`- Tổng điểm đón: ${departurePoints.length}`);
-    departurePoints.forEach((p) => {
-      console.log(`  • ${p.name} (ID:${p.id}) - ${p.province.name}`);
-    });
-
-    console.log(`Tổng điểm trả: ${destinationPoints.length}`);
-    destinationPoints.forEach((p) => {
-      console.log(`  • ${p.name} (ID:${p.id}) - ${p.province.name}`);
-    });
+    console.log(`
+      KẾT QUẢ TÌM ĐIỂM:
+      - Tổng điểm đón: ${departurePoints.length}
+      ${departurePoints
+        .map((p) => `• ${p.name} (ID:${p.id}) - ${p.province.name}`)
+        .join('\n')}
+      - Tổng điểm trả: ${destinationPoints.length}
+      ${destinationPoints
+        .map((p) => `• ${p.name} (ID:${p.id}) - ${p.province.name}`)
+        .join('\n')}
+    `);
 
     if (departurePoints.length === 0 || destinationPoints.length === 0) {
       console.log('KHÔNG TÌM THẤY ĐIỂM ĐÓN/TRẢ PHÙ HỢP');
@@ -358,23 +365,22 @@ export class TripService {
       destinationPoints.map((p) => p.id).join(', '),
     );
 
+    const departurePointIds = departurePoints.map((p) => p.id);
+    const destinationPointIds = destinationPoints.map((p) => p.id);
+
     const routesQuery = this.routeRepository
       .createQueryBuilder('route')
       .innerJoin(
         'route.point_of_route',
         'departurePor',
         'departurePor.point_id IN (:...departurePointIds)',
-        {
-          departurePointIds: departurePoints.map((p) => p.id),
-        },
+        { departurePointIds },
       )
       .innerJoin(
         'route.point_of_route',
         'destinationPor',
         'destinationPor.point_id IN (:...destinationPointIds)',
-        {
-          destinationPointIds: destinationPoints.map((p) => p.id),
-        },
+        { destinationPointIds },
       )
       .where('departurePor.display_order < destinationPor.display_order');
 
@@ -428,6 +434,7 @@ export class TripService {
 
     console.log('KẾT QUẢ CHUYẾN ĐI THÔNG TIN:');
     console.log(`- Tổng chuyến đi tìm thấy: ${trips.length}`);
+
     trips.forEach((t) => {
       console.log(`  • Chuyến ${t.id} - ${t.time_departure} - ${t.route.name}`);
     });
@@ -513,7 +520,6 @@ export class TripService {
     // 4. Bổ sung thông tin điểm đón/trả và kiểm tra vé
     console.log('[4/4] Bổ sung thông tin điểm đón/trả và kiểm tra vé...');
 
-
     const enhancedTrips = await Promise.all(
       trips.map(async (trip) => {
         // Kiểm tra xem chuyến đi đã có vé chưa
@@ -592,7 +598,7 @@ export class TripService {
           company: trip.company,
           seat_map: trip.seat_map,
           tickets_available: trip.tickets?.filter(
-            (ticket) => ticket.status_booking_ticket === false
+            (ticket) => ticket.status_booking_ticket === false,
           ).length,
         };
 
@@ -638,9 +644,17 @@ export class TripService {
 
     // 1. Lấy thông tin trip từ database
     console.log('[2] Truy vấn thông tin trip từ database...');
+
     const trip = await this.tripRepository.findOne({
       where: { id },
-      relations: ['seat_map', 'seat_map.seats', 'tickets', 'route', 'company'],
+      relations: [
+        'seat_map',
+        'seat_map.seats',
+        'tickets',
+        'route',
+        'company',
+        'company.policies',
+      ],
     });
 
     if (!trip) {
@@ -739,6 +753,7 @@ export class TripService {
         base_price: ticket.base_price || 0,
         status_booking_ticket: ticket.status_booking_ticket || false,
       })),
+      policy_content: trip.company.policies[0].content,
     };
 
     console.log('[13] Hoàn thành xử lý. Kết quả:', result);
@@ -948,17 +963,25 @@ export class TripService {
 
   async getPointUpByTrip(tripId: number): Promise<DTO_RP_TripPoint[]> {
     console.log('Bắt đầu hàm getPointUpByTrip với tripId:', tripId);
-  
+
     try {
       const trip = await this.tripRepository.findOne({
         where: { id: tripId },
-        relations: ['route', 'route.point_of_route', 'route.point_of_route.point', 'schedule'],
+        relations: [
+          'route',
+          'route.point_of_route',
+          'route.point_of_route.point',
+          'schedule',
+        ],
       });
-  
+
       if (!trip) {
-        throw new HttpException('Chuyến đi không tồn tại', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Chuyến đi không tồn tại',
+          HttpStatus.NOT_FOUND,
+        );
       }
-  
+
       const sortedPoints = trip.route.point_of_route
         .sort((a, b) => a.display_order - b.display_order)
         .map((por) => ({
@@ -968,7 +991,7 @@ export class TripService {
           display_order: por.display_order,
           province_id: por.point.provinces_id,
           time_point: por.time,
-          start_time: trip.schedule.start_time
+          start_time: trip.schedule.start_time,
         }));
       return sortedPoints;
     } catch (error) {
@@ -979,17 +1002,25 @@ export class TripService {
 
   async getPointDownByTrip(tripId: number): Promise<DTO_RP_TripPoint[]> {
     console.log('Bắt đầu hàm getPointDownByTrip với tripId:', tripId);
-  
+
     try {
       const trip = await this.tripRepository.findOne({
         where: { id: tripId },
-        relations: ['route', 'route.point_of_route', 'route.point_of_route.point', 'schedule'],
+        relations: [
+          'route',
+          'route.point_of_route',
+          'route.point_of_route.point',
+          'schedule',
+        ],
       });
-  
+
       if (!trip) {
-        throw new HttpException('Chuyến đi không tồn tại', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Chuyến đi không tồn tại',
+          HttpStatus.NOT_FOUND,
+        );
       }
-  
+
       const sortedPoints = trip.route.point_of_route
         .sort((a, b) => b.display_order - a.display_order)
         .map((por) => ({
@@ -999,18 +1030,13 @@ export class TripService {
           display_order: por.display_order,
           province_id: por.point.provinces_id,
           time_point: por.time,
-          start_time: trip.schedule.start_time
+          start_time: trip.schedule.start_time,
         }));
-  
+
       return sortedPoints;
     } catch (error) {
       console.error('Lỗi trong getPointDownByTrip:', error);
       throw new HttpException('Lỗi hệ thống', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
-  
-  
-
-
 }

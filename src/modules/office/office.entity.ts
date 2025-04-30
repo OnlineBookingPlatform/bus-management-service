@@ -22,7 +22,7 @@ export class Office {
   @Column()
   phone_ticket: string;
 
-  @Column()
+  @Column({ nullable: true })
   phone_goods: string;
 
   @Column()
@@ -39,9 +39,6 @@ export class Office {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
-
-  @Column()
-  company_id: number;
 
   @ManyToOne(() => Company, (company) => company.offices, {
     nullable: false,

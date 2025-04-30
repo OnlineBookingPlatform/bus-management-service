@@ -2,10 +2,13 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Company } from './company.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DTO_RP_Company, DTO_RP_RegisterSaleTicketOnPlatform, DTO_RQ_Company, DTO_RQ_RegisterSaleTicketOnPlatform } from './company.dto';
+import {
+  DTO_RP_Company,
+  DTO_RP_RegisterSaleTicketOnPlatform,
+  DTO_RQ_Company,
+  DTO_RQ_RegisterSaleTicketOnPlatform,
+} from './company.dto';
 import { RedisService } from 'src/config/redis.service';
-import { stat } from 'fs';
-import { Policy } from './policy.entity';
 import { RegisterSaleTicket } from './register_sale_ticket.entity';
 
 @Injectable()
@@ -15,16 +18,13 @@ export class CompanyService {
     private readonly companyRepository: Repository<Company>,
     private readonly redisService: RedisService,
 
-    @InjectRepository(Policy)
-    private readonly policyRepository: Repository<Policy>,
-
     @InjectRepository(RegisterSaleTicket)
     private readonly registerSaleTicketRepository: Repository<RegisterSaleTicket>,
   ) {}
 
   // Tạo công ty mới data lưu vào PostgreSQL và Redis
   async createCompany(company: DTO_RQ_Company): Promise<DTO_RP_Company> {
-    console.log('Received Data: ', company);
+    // console.log('Received Data: ', company);
 
     if ('created_at' in company) {
       delete company.created_at;
@@ -43,11 +43,13 @@ export class CompanyService {
       code: newCompany.code,
       status: newCompany.status,
     };
+
     await this.redisService.set(
       `company:${newCompany.id}`,
       JSON.stringify(companyCacheData),
     );
-    console.log(`✅ Công ty ${newCompany.id} đã được lưu vào Redis`);
+
+    // console.log(`✅ Công ty ${newCompany.id} đã được lưu vào Redis`);
 
     return {
       id: newCompany.id,
@@ -67,6 +69,7 @@ export class CompanyService {
   // Lấy danh sách tất cả công ty từ PostgreSQL và lưu vào Redis
   async getAllCompanies(): Promise<DTO_RP_Company[]> {
     const companies = await this.companyRepository.find();
+
     for (const company of companies) {
       const companyData = JSON.stringify({
         id: company.id,
@@ -75,7 +78,9 @@ export class CompanyService {
       });
       await this.redisService.set(`company:${company.id}`, companyData);
     }
-    console.log('✅ Đã lưu danh sách công ty vào Redis');
+
+    // console.log('✅ Đã lưu danh sách công ty vào Redis');
+
     const companiesMapped = companies.map((company) => ({
       id: company.id,
       name: company.name,
@@ -89,7 +94,17 @@ export class CompanyService {
       url_vehicle_online: company.url_vehicle_online,
       created_at: company.created_at.toISOString(),
     }));
+
     return companiesMapped;
+  }
+
+  async getCompany(id: number): Promise<Company> {
+    const company = await this.companyRepository.findOne({
+      where: { id },
+      relations: ['policies'],
+    });
+
+    return company;
   }
 
   // Cập nhật thông tin công ty trong PostgreSQL và Redis
@@ -98,15 +113,17 @@ export class CompanyService {
     companyData: DTO_RQ_Company,
   ): Promise<DTO_RP_Company> {
     // 1. Kiểm tra xem công ty có tồn tại không
-    const existingCompany = await this.companyRepository.findOne({ where: { id } });
-  
+    const existingCompany = await this.companyRepository.findOne({
+      where: { id },
+    });
+
     if (!existingCompany) {
       throw new HttpException(
         `Không tìm thấy công ty với ID: ${id}`,
         HttpStatus.NOT_FOUND,
       );
     }
-  
+
     // 2. Cập nhật dữ liệu trong database
     await this.companyRepository.update(id, {
       name: companyData.name,
@@ -118,23 +135,29 @@ export class CompanyService {
       code: companyData.code,
       note: companyData.note,
     });
-  
+
     // 3. Lấy dữ liệu mới sau khi cập nhật
-    const updatedCompany = await this.companyRepository.findOne({ where: { id } });
-  
+    const updatedCompany = await this.companyRepository.findOne({
+      where: { id },
+    });
+
     if (!updatedCompany) {
       throw new HttpException(
         `Lỗi khi lấy dữ liệu công ty sau khi cập nhật ID: ${id}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  
+
     // 4. Cập nhật Redis với ID & Name & status
     await this.redisService.set(
       `company:${updatedCompany.id}`,
-      JSON.stringify({ id: updatedCompany.id, code: updatedCompany.code, status: updatedCompany.status })
+      JSON.stringify({
+        id: updatedCompany.id,
+        code: updatedCompany.code,
+        status: updatedCompany.status,
+      }),
     );
-  
+
     return {
       id: updatedCompany.id,
       name: updatedCompany.name,
@@ -149,7 +172,7 @@ export class CompanyService {
       created_at: updatedCompany.created_at.toISOString(),
     };
   }
-  
+
   // Xóa công ty trong PostgreSQL và Redis
   async deleteCompany(id: number): Promise<void> {
     console.log('Received Data:', id);
@@ -179,7 +202,11 @@ export class CompanyService {
 
     await this.redisService.set(
       `company:${company.id}`,
-      JSON.stringify({ id: company.id, code: company.code, status: company.status })
+      JSON.stringify({
+        id: company.id,
+        code: company.code,
+        status: company.status,
+      }),
     );
 
     return {
@@ -209,7 +236,11 @@ export class CompanyService {
     await this.companyRepository.save(company);
     await this.redisService.set(
       `company:${company.id}`,
-      JSON.stringify({ id: company.id, code: company.code, status: company.status })
+      JSON.stringify({
+        id: company.id,
+        code: company.code,
+        status: company.status,
+      }),
     );
     return {
       id: company.id,
@@ -226,70 +257,12 @@ export class CompanyService {
     };
   }
 
-  async createPolicy(
-    company_id: number,
-    policy: any,
-  ): Promise<any> {
-    const company = await this.companyRepository.findOne({
-      where: { id: company_id },
-    });
-  
-    if (!company) {
-      throw new HttpException(
-        'Không tìm thấy dữ liệu công ty!',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-  
-    const existingPolicy = await this.policyRepository.findOne({
-      where: { company: { id: company_id } },
-    });
-  
-    if (existingPolicy) {
-      existingPolicy.content = policy.content;
-      return await this.policyRepository.save(existingPolicy);
-    } else {
-      const newPolicy = this.policyRepository.create({
-        content: policy.content,
-        company: company,
-      });
-      return await this.policyRepository.save(newPolicy);
-    }
-  }
-
-  async getPolicy(company_id: number): Promise<any> {
-    const company = await this.companyRepository.findOne({
-      where: { id: company_id },
-    });
-  
-    if (!company) {
-      throw new HttpException(
-        'Không tìm thấy dữ liệu công ty!',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-  
-    const policy = await this.policyRepository.findOne({
-      where: { company: { id: company_id } },
-    });
-  
-    if (!policy) {
-      throw new HttpException(
-        'Không tìm thấy dữ liệu chính sách!',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-  
-    return policy;
-  }
-
-
   // Đăng ký vé trên nền tảng
   async registerSaleTicketOnPlatform(
     data: DTO_RQ_RegisterSaleTicketOnPlatform,
   ): Promise<void> {
     console.log('Received Data: ', data);
-  
+
     const newRegister = this.registerSaleTicketRepository.create({
       name: data.name,
       phone: data.phone,
@@ -299,12 +272,14 @@ export class CompanyService {
       bus_company_name: data.bus_company_name,
       status: 1,
     });
-  
+
     await this.registerSaleTicketRepository.save(newRegister);
   }
 
   // Lấy danh sách yêu cầu đăng ký mở bán vé trên nền tảng
-  async getSaleTicketOnPlatform(): Promise<DTO_RP_RegisterSaleTicketOnPlatform[]> {
+  async getSaleTicketOnPlatform(): Promise<
+    DTO_RP_RegisterSaleTicketOnPlatform[]
+  > {
     const registerSaleTickets = await this.registerSaleTicketRepository.find({
       order: {
         created_at: 'DESC',
@@ -322,6 +297,4 @@ export class CompanyService {
       created_at: ticket.created_at.toISOString(),
     }));
   }
-  
-  
 }
