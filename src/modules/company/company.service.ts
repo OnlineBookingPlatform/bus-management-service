@@ -134,6 +134,7 @@ export class CompanyService {
       url_logo: companyData.url_logo,
       code: companyData.code,
       note: companyData.note,
+      url_vehicle_online: companyData.url_vehicle_online,
     });
 
     // 3. Lấy dữ liệu mới sau khi cập nhật

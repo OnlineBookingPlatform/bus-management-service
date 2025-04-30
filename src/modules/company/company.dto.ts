@@ -19,6 +19,8 @@ export class DTO_RQ_Company {
   code: string;
   @IsString()
   note: string;
+  @IsString()
+  url_vehicle_online: string;
 }
 
 export class DTO_RP_Company {
