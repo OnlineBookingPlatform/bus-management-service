@@ -153,6 +153,7 @@ export class TicketService {
         ticket.creator_by_name = "VinaHome";
         ticket.email = updateData.email;
         ticket.gender = updateData.gender;
+        ticket.creator_by_id = updateData.passenger_id;
       }
     }
 

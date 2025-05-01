@@ -1,4 +1,4 @@
-export class DTO_RP_Ticekt {
+export class DTO_RP_Ticket {
     id: number;
     seat_name: string;
     seat_code: string;
@@ -33,6 +33,7 @@ export class DTO_RQ_UpdateTicketOnPlatform {
     ticket_note: string;
     email: string;
     gender: number;
+    creator_by_id: string;
 }
 
 export interface DTO_RQ_TicketSearch {
