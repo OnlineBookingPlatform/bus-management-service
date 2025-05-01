@@ -318,5 +318,47 @@ export class RouteService {
     });
     return mappedRoute;
   }
+
+  // Cập nhật tuyến phổ biến
+  async updateRoutePopular(
+    id: number,
+    data: DTO_RQ_RoutePopular,
+  ): Promise<DTO_RP_RoutePopular> {
+    console.log('Received data:', data);
+    const existingRoute = await this.routePopularRepository.findOne({
+      where: { id },
+    });
+    if (!existingRoute) {
+      throw new HttpException(
+        'Dữ liệu tuyến đường không tồn tại!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const updatedRoute = await this.routePopularRepository.save({
+      ...existingRoute,
+      ...data,
+      created_at: existingRoute.created_at,
+    });
+    return {
+      id: updatedRoute.id,
+      name: updatedRoute.name,
+      url_avatar: updatedRoute.url_avatar,
+      base_price: updatedRoute.base_price,
+      status: updatedRoute.status,
+    };
+  }
+
+  async deleteRoutePopular(id: number): Promise<void> {
+    const existingRoute = await this.routePopularRepository.findOne({
+      where: { id },
+    });
+    if (!existingRoute) {
+      throw new HttpException(
+        'Dữ liệu tuyến đường không tồn tại!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    await this.routePopularRepository.delete(id);
+  }
   
 }

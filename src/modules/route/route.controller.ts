@@ -105,4 +105,33 @@ export class RouteController {
       return handleError(error);
     }
   }
+
+  // Cập nhật tuyến phổ biến
+  @MessagePattern('update_route_popular')
+  async updateRoutePopular(
+    @Payload() data: { id: number; data: DTO_RQ_RoutePopular },
+  ): Promise<ApiResponse<DTO_RP_RoutePopular>> {
+    try {
+      const response = await this.routeService.updateRoutePopular(
+        data.id,
+        data.data,
+      );
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  // Xóa tuyến phổ biến
+  @MessagePattern('delete_route_popular')
+  async deleteRoutePopular(
+    @Payload() id: number,
+  ): Promise<ApiResponse<void>> {
+    try {
+      const response = await this.routeService.deleteRoutePopular(id);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
 }
