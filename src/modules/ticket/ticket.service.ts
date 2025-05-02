@@ -4,7 +4,7 @@ import { Ticket } from './ticket.entity';
 import { In, Repository } from 'typeorm';
 import { DTO_RP_Ticket } from '../trip/trip.dto';
 import { Trip } from '../trip/trip.entity';
-import { DTO_RP_TicketSearch, DTO_RQ_TicketId, DTO_RQ_TicketSearch, DTO_RQ_UpdateTicketOnPlatform } from './ticket.dto';
+import { DTO_RP_TicketSearch, DTO_RQ_Ticket, DTO_RQ_TicketByPaymentService, DTO_RQ_TicketId, DTO_RQ_TicketSearch, DTO_RQ_UpdateTicketOnPlatform } from './ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -219,5 +219,59 @@ export class TicketService {
     }
 
   }
+
+  async createTicketByPaymentService(data: DTO_RQ_TicketByPaymentService): Promise<any> {
+    console.log("Payment Service send Data:", data);
+  
+    const ids = data.ticket.map((item) => item.id);
+    const tickets = await this.ticketRepository.findBy({ id: In(ids) });
+  
+    if (tickets.length !== ids.length) {
+      console.error('❌ Một hoặc nhiều vé không tồn tại trong DB!');
+      throw new HttpException('Dữ liệu vé không tồn tại', HttpStatus.NOT_FOUND);
+    }
+  
+    for (const ticket of tickets) {
+      // Cập nhật thông tin chung cho mỗi vé
+      ticket.passenger_name = data.passenger_name;
+      ticket.passenger_phone = data.passenger_phone;
+      ticket.point_up = data.point_up;
+      ticket.point_down = data.point_down;
+      ticket.ticket_note = data.ticket_note;
+      ticket.payment_method = 1;
+      ticket.creator_by_name = "VinaHome";
+      ticket.email = data.email;
+      ticket.gender = data.gender;
+      ticket.creator_by_id = data.creator_by_id;
+    }
+  
+    await this.ticketRepository.save(tickets);
+  }
+
+  async updatePaidTicketAmount(data: DTO_RQ_Ticket[]): Promise<void> {
+    console.log('updatePaidTicketAmount', data);
+  
+    for (const ticketDto of data) {
+      const ticket = await this.ticketRepository.findOne({
+        where: { id: ticketDto.id },
+      });
+  
+      if (!ticket) {
+        console.warn(`⚠️ Ticket with ID ${ticketDto.id} not found.`);
+        continue;
+      }
+  
+      ticket.money_paid = ticketDto.price;
+  
+      try {
+        await this.ticketRepository.save(ticket);
+        console.log(`✅ Updated ticket ID ${ticket.id} with money_paid: ${ticket.money_paid}`);
+      } catch (error) {
+        console.error(`❌ Failed to update ticket ID ${ticket.id}:`, error);
+      }
+    }
+  }
+  
+  
 
 }

@@ -55,3 +55,23 @@ export interface DTO_RQ_TicketSearch {
     start_time: string;
     start_date: string;
   }
+  export class DTO_RQ_Ticket {
+    id: number;
+    seat_name: string;
+    price: number;
+}
+  export interface DTO_RQ_TicketByPaymentService {
+    account_id: string;
+    service_provider_id: number;
+    service_provider_name: string;
+    ticket: DTO_RQ_Ticket[];
+
+    passenger_name: string;
+    passenger_phone: string;
+    point_up: string;
+    point_down: string;
+    ticket_note: string;
+    email: string;
+    gender: number;
+    creator_by_id: string;
+  }

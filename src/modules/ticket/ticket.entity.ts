@@ -75,4 +75,7 @@ export class Ticket {
   @Column()
   payment_method?: number;
 
+  @Column()
+  money_paid?: number;
+
 }
