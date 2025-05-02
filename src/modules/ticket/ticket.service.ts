@@ -49,6 +49,7 @@ export class TicketService {
       gender: ticket.gender,
       creator_by_name: ticket.creator_by_name,
       payment_method: ticket.payment_method,
+      money_paid: ticket.money_paid,
     }));
     console.log('result:', result);
     return result;

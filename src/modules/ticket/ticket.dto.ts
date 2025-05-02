@@ -18,6 +18,7 @@ export class DTO_RP_Ticket {
     gender: number;
     creator_by_name: string;
     payment_method: number;
+    money_paid: number;
 }
 
 export class DTO_RQ_TicketId {
