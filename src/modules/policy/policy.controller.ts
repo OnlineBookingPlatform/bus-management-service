@@ -22,6 +22,7 @@ export class PolicyController {
   async updatePolicy(@Payload() data: { id: number; content: string }) {
     return await this.policyService
       .updatePolicy(data.id, data.content)
+      .then((result) => ApiResponse.success(result))
       .catch((error) => handleError(error));
   }
 }
