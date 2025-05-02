@@ -272,6 +272,32 @@ export class TicketService {
       }
     }
   }
+
+  async getTicketByAccountId(accountId: string): Promise<DTO_RP_TicketSearch[]> {
+    console.log('Fetching tickets for account ID:', accountId);
+
+    const tickets = await this.ticketRepository.find({
+      where: { creator_by_id: accountId },
+      relations: ['trip', 'trip.route'],
+      order: { id: 'DESC' },
+    });
+
+    return tickets.map(ticket => ({
+      id: ticket.id,
+      passenger_name: ticket.passenger_name,
+      passenger_phone: ticket.passenger_phone,
+      point_up: ticket.point_up,
+      point_down: ticket.point_down,
+      email: ticket.email,
+      base_price: ticket.base_price,
+      payment_method: ticket.payment_method,
+      seat_name: ticket.seat_name,
+      route_name: ticket.trip.route.name,
+      license_plate: null,
+      start_time: ticket.trip.time_departure.toString(),
+      start_date: ticket.trip.date_departure.toString(),
+    }));
+  }
   
   
 

@@ -96,5 +96,15 @@ export class TicketController {
     }
   }
 
+  @MessagePattern('get_ticket_by_account_id')
+  async getTicketByAccountId(@Payload() data: string): Promise<ApiResponse<DTO_RP_TicketSearch[]>> {
+    try {
+      const response = await this.ticketService.getTicketByAccountId(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
 
 }
