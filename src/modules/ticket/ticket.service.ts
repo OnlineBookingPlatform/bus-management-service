@@ -244,6 +244,7 @@ export class TicketService {
       ticket.email = data.email;
       ticket.gender = data.gender;
       ticket.creator_by_id = data.creator_by_id;
+      ticket.status_booking_ticket = true;
     }
   
     await this.ticketRepository.save(tickets);

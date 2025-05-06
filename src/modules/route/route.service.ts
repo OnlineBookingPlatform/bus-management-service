@@ -186,6 +186,7 @@ export class RouteService {
     const existingCompany = await this.companyRepository.findOne({
       where: { id: id },
     });
+    console.log('Received Company ID:', id);
 
     if (!existingCompany) {
       console.error('❌ [ERROR] Công ty không tồn tại với ID:', id);
@@ -199,6 +200,7 @@ export class RouteService {
       where: { company_id: id, status: true },
       order: { display_order: 'ASC' },
     });
+    console.log('🚀 [DEBUG] Danh sách tuyến đường:', routes);
 
     if (!routes || routes.length === 0) {
       return [];

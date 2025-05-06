@@ -112,6 +112,7 @@ export class OfficeService {
     const existingCompany = await this.companyRepository.findOne({
       where: { id: companyId },
     });
+    console.log('Existing Company:', existingCompany);
 
     if (!existingCompany) {
       throw new HttpException(
@@ -123,6 +124,7 @@ export class OfficeService {
     const offices = await this.officeRepository.find({
       where: { company: { id: companyId } },
     });
+    console.log(offices);
 
     const mappedOffices = offices.map((office) => {
       return {
