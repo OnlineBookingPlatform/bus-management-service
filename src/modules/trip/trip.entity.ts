@@ -11,6 +11,7 @@ import { Schedule } from '../schedule/schedule.entity';
 import { Route } from '../route/route.entity';
 import { SeatMap } from '../seat/seat_map.entity';
 import { Ticket } from '../ticket/ticket.entity';
+import { Evaluate } from '../evaluate/evaluate.entity';
 
 @Entity('tbl_trip')
 export class Trip {
@@ -41,5 +42,8 @@ export class Trip {
 
   @OneToMany(() => Ticket, (ticket) => ticket.trip)
   tickets: Ticket[];
+
+  @OneToMany(() => Evaluate, (evaluate) => evaluate.trip)
+  evaluates: Evaluate[];
 
 }

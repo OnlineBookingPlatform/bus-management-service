@@ -55,6 +55,8 @@ export interface DTO_RQ_TicketSearch {
     license_plate: string;
     start_time: string;
     start_date: string;
+    company_id: number;
+    trip_id: number;
   }
   export class DTO_RQ_Ticket {
     id: number;

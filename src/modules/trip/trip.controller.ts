@@ -35,7 +35,7 @@ export class TripController {
     @Payload() data: { date: string; company_id: number, route_id: number },
   ): Promise<ApiResponse<DTO_RP_ListTrip[]>> {
     try {
-      const response = await this.tripService.getTripsByDateAndRoute(data);
+      const response = await this.tripService.getTripsByDateAndRouteOnBMS(data);
       return ApiResponse.success(response);
     } catch (error) {
       return handleError(error);

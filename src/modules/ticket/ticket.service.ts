@@ -188,7 +188,7 @@ export class TicketService {
           id: numericCode,
           passenger_phone: phone,
         },
-        relations: ['trip', 'trip.route'],
+        relations: ['trip', 'trip.route', 'trip.company', 'company'],
       });
 
       if (!ticket) {
@@ -209,6 +209,8 @@ export class TicketService {
         license_plate: null,
         start_time: ticket.trip.time_departure.toString(),
         start_date: ticket.trip.date_departure.toString(),
+        company_id: ticket.company.id,
+        trip_id: ticket.trip.id,
       };
       console.log('response:', response);
       return response;
@@ -279,10 +281,10 @@ export class TicketService {
 
     const tickets = await this.ticketRepository.find({
       where: { creator_by_id: accountId },
-      relations: ['trip', 'trip.route'],
+      relations: ['trip', 'trip.route', 'company'],
       order: { id: 'DESC' },
     });
-
+console.log('Fetched tickets:', tickets);
     return tickets.map(ticket => ({
       id: ticket.id,
       passenger_name: ticket.passenger_name,
@@ -297,7 +299,10 @@ export class TicketService {
       license_plate: null,
       start_time: ticket.trip.time_departure.toString(),
       start_date: ticket.trip.date_departure.toString(),
+      company_id: ticket.company.id,
+      trip_id: ticket.trip.id,
     }));
+    
   }
   
   

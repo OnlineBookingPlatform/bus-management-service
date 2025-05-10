@@ -10,6 +10,7 @@ import { ScheduleModule } from "../schedule/schedule.module";
 import { PointModule } from "../point/point.module";
 import { LocationModule } from "../location/location.module";
 import { TicketModule } from "../ticket/ticket.module";
+import { EvaluateModule } from "../evaluate/evaluate.module";
 
 @Module({
     imports: [TypeOrmModule.forFeature([Trip]), CompanyModule, RouteModule, SeatModule, ScheduleModule, PointModule, LocationModule, TicketModule],
