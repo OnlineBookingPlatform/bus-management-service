@@ -16,6 +16,7 @@ import { PolicyModule } from './modules/policy/policy.module';
 import { InterestInRouteModule } from './modules/interest-in-route/interest-in-route.module';
 import { TransitModule } from './modules/transit/transit.module';
 import { EvaluateModule } from './modules/evaluate/evaluate.module';
+import { DiscountModule } from './modules/discount/discount.module';
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { EvaluateModule } from './modules/evaluate/evaluate.module';
     PolicyModule,
     InterestInRouteModule,
     TransitModule,
-    EvaluateModule
+    EvaluateModule,
+    DiscountModule,
   ],
   controllers: [],
   providers: [RedisService],

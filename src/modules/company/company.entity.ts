@@ -17,6 +17,7 @@ import { Ticket } from '../ticket/ticket.entity';
 import { Policy } from '../policy/policy.entity';
 import { Transit } from '../transit/transit.entity';
 import { Evaluate } from '../evaluate/evaluate.entity';
+import { Discount } from '../discount/discount.entity';
 
 @Entity('tbl_company')
 export class Company {
@@ -78,4 +79,7 @@ export class Company {
 
   @OneToMany(() => Evaluate, (evaluate) => evaluate.company)
   evaluates: Evaluate[];
+
+  @OneToMany(() => Discount, (discount) => discount.company)
+  discounts: Discount[];
 }
