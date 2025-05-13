@@ -42,6 +42,5 @@ export class DTO_RP_Discount {
   discount_type: boolean;
   description: string;
   number_of_uses: number;
-  company_id: number;
   created_at: string; 
 }

@@ -9,15 +9,28 @@ import { handleError } from 'src/utils/error-handler';
 export class DiscountController {
   constructor(private readonly discountService: DiscountService) {}
 
-     @MessagePattern('get_discounts_by_company')
-      async getDiscountsByCompany(
-        @Payload() id: number,
-      ): Promise<ApiResponse<DTO_RP_Discount[]>> {
-        try {
-          const discounts = await this.discountService.getDiscountsByCompany(id);
-          return ApiResponse.success(discounts);
-        } catch (error) {
-          return handleError(error);
-        }
-      }
+  @MessagePattern('get_discounts_by_company')
+  async getDiscountsByCompany(
+    @Payload() id: number,
+  ): Promise<ApiResponse<DTO_RP_Discount[]>> {
+    try {
+      const discounts = await this.discountService.getDiscountsByCompany(id);
+      return ApiResponse.success(discounts);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('create_discount')
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async createDiscount(
+    @Payload() data: DTO_RQ_Discount,
+  ): Promise<ApiResponse<DTO_RP_Discount>> {
+    try {
+      const discount = await this.discountService.createDiscount(data);
+      return ApiResponse.success(discount);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
 }
