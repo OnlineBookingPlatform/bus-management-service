@@ -33,4 +33,29 @@ export class DiscountController {
       return handleError(error);
     }
   }
+
+  @MessagePattern('update_discount')
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async updateDiscount(
+    @Payload() data: { id: number; data: DTO_RQ_Discount },
+  ): Promise<ApiResponse<DTO_RP_Discount>> {
+    try {
+      const discount = await this.discountService.updateDiscount(data.id, data.data);
+      return ApiResponse.success(discount);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
+
+  @MessagePattern('delete_discount')
+  async deleteDiscount(
+    @Payload() id: number,
+  ): Promise<ApiResponse<void>> {
+    try {
+      const office = await this.discountService.deleteDiscount(id);
+      return ApiResponse.success(office);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
 }

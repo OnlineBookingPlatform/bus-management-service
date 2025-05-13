@@ -136,4 +136,60 @@ export class DiscountService {
       created_at: savedDiscount.created_at?.toISOString(),
     };
   }
+
+  async updateDiscount(
+    id: number,
+    discount: DTO_RQ_Discount,
+    ): Promise<DTO_RP_Discount> {
+    console.log('Received Data discount from client: ', discount);
+
+    const existingDiscount = await this.discountRepository.findOne({
+      where: { id },
+    });
+    console.log('Existing Office:', existingDiscount);
+
+    if (!existingDiscount) {
+      throw new HttpException(
+        'Dữ liệu discount không tồn tại!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const updatedDiscount = {
+      ...existingDiscount,
+      ...discount,
+      created_at: existingDiscount.created_at,
+    };
+
+    const savedDiscount = await this.discountRepository.save(updatedDiscount);
+    console.log('Saved Discount:', savedDiscount);
+
+    return {
+      id: savedDiscount.id,
+      discount_code: savedDiscount.discount_code,
+      date_start: savedDiscount.date_start?.toISOString(),
+      date_end: savedDiscount.date_end?.toISOString(),
+      discount_value: savedDiscount.discount_value,
+      discount_type: savedDiscount.discount_type,
+      description: savedDiscount.description,
+      number_of_uses: savedDiscount.number_of_uses,
+      created_at: savedDiscount.created_at?.toISOString(),
+    };
+  }
+
+  async deleteDiscount(id: number): Promise<void> {
+    console.log('Received Data Discount ID from client: ', id);
+    const existingDiscount = await this.discountRepository.findOne({
+      where: { id },
+    });
+
+    if (!existingDiscount) {
+      throw new HttpException(
+        'Dữ liệu mã giảm giá không tồn tại!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    await this.discountRepository.delete({ id });
+  }
 }
