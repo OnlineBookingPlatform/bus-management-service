@@ -4,7 +4,14 @@ import { Ticket } from './ticket.entity';
 import { In, Repository } from 'typeorm';
 import { DTO_RP_Ticket } from '../trip/trip.dto';
 import { Trip } from '../trip/trip.entity';
-import { DTO_RP_TicketSearch, DTO_RQ_Ticket, DTO_RQ_TicketByPaymentService, DTO_RQ_TicketId, DTO_RQ_TicketSearch, DTO_RQ_UpdateTicketOnPlatform } from './ticket.dto';
+import {
+  DTO_RP_TicketSearch,
+  DTO_RQ_Ticket,
+  DTO_RQ_TicketByPaymentService,
+  DTO_RQ_TicketId,
+  DTO_RQ_TicketSearch,
+  DTO_RQ_UpdateTicketOnPlatform,
+} from './ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -13,7 +20,7 @@ export class TicketService {
     private readonly ticketRepository: Repository<Ticket>,
     @InjectRepository(Trip)
     private readonly tripRepository: Repository<Trip>,
-  ) { }
+  ) {}
 
   async getTicketByTrip(id: number): Promise<DTO_RP_Ticket[]> {
     console.log('getTicketByTrip', id);
@@ -38,7 +45,6 @@ export class TicketService {
       seat_status: ticket.seat_status,
       status_booking_ticket: ticket.status_booking_ticket,
       base_price: ticket.base_price,
-
 
       passenger_name: ticket.passenger_name,
       passenger_phone: ticket.passenger_phone,
@@ -73,7 +79,10 @@ export class TicketService {
     const allTicketsAreAvailable = tickets.every(
       (ticket) => ticket.status_booking_ticket === false,
     );
-    console.log('🟢 Tất cả vé có đang ở trạng thái chưa đặt không?', allTicketsAreAvailable);
+    console.log(
+      '🟢 Tất cả vé có đang ở trạng thái chưa đặt không?',
+      allTicketsAreAvailable,
+    );
 
     if (!allTicketsAreAvailable) {
       console.error('❌ Có ít nhất 1 vé đã được đặt → huỷ thao tác!');
@@ -81,7 +90,9 @@ export class TicketService {
     }
 
     for (const ticket of tickets) {
-      console.log(`✅ Đang cập nhật vé ID ${ticket.id} → set status_booking_ticket = true`);
+      console.log(
+        `✅ Đang cập nhật vé ID ${ticket.id} → set status_booking_ticket = true`,
+      );
       ticket.status_booking_ticket = true;
     }
 
@@ -109,7 +120,10 @@ export class TicketService {
     const allTicketsAreBooked = tickets.every(
       (ticket) => ticket.status_booking_ticket === true,
     );
-    console.log('🟢 Tất cả vé có đang ở trạng thái đã đặt không?', allTicketsAreBooked);
+    console.log(
+      '🟢 Tất cả vé có đang ở trạng thái đã đặt không?',
+      allTicketsAreBooked,
+    );
 
     if (!allTicketsAreBooked) {
       console.error('❌ Có ít nhất 1 vé chưa được đặt → huỷ thao tác!');
@@ -117,7 +131,9 @@ export class TicketService {
     }
 
     for (const ticket of tickets) {
-      console.log(`✅ Đang cập nhật vé ID ${ticket.id} → set status_booking_ticket = false`);
+      console.log(
+        `✅ Đang cập nhật vé ID ${ticket.id} → set status_booking_ticket = false`,
+      );
       ticket.status_booking_ticket = false;
     }
 
@@ -127,7 +143,9 @@ export class TicketService {
     console.log('🎉 Cập nhật vé thành công!');
   }
 
-  async updateTicketOnPlatform(data: DTO_RQ_UpdateTicketOnPlatform[]): Promise<void> {
+  async updateTicketOnPlatform(
+    data: DTO_RQ_UpdateTicketOnPlatform[],
+  ): Promise<void> {
     console.log('👉 Bắt đầu xử lý updateTicketOnPlatform với dữ liệu:', data);
 
     const ids = data.map((item) => item.id);
@@ -151,7 +169,7 @@ export class TicketService {
         ticket.ticket_note = updateData.ticket_note;
         // ticket.creator_by_id = updateData.passenger_id;
         ticket.payment_method = 1;
-        ticket.creator_by_name = "VinaHome";
+        ticket.creator_by_name = 'VinaHome';
         ticket.email = updateData.email;
         ticket.gender = updateData.gender;
         ticket.creator_by_id = updateData.creator_by_id;
@@ -165,18 +183,23 @@ export class TicketService {
   }
 
   async updateTicketInfoOnBMS(data: any): Promise<void> {
-    console.log("Booking Data:", data)
+    console.log('Booking Data:', data);
     return null;
   }
 
   // Tra cứu thông tin vé trên nền tảng
-  async searchTicketOnPlatform(data: DTO_RQ_TicketSearch): Promise<DTO_RP_TicketSearch> {
+  async searchTicketOnPlatform(
+    data: DTO_RQ_TicketSearch,
+  ): Promise<DTO_RP_TicketSearch> {
     try {
       console.log('data:', data);
       const { phone, code } = data;
-      
+
       if (!phone && !code) {
-        throw new HttpException('Vui lòng cung cấp số điện thoại hoặc mã vé', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Vui lòng cung cấp số điện thoại hoặc mã vé',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       const numericCode = code ? Number(code) : undefined;
       if (code && isNaN(numericCode)) {
@@ -192,7 +215,10 @@ export class TicketService {
       });
 
       if (!ticket) {
-        throw new HttpException('Không tìm thấy thông tin vé', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Không tìm thấy thông tin vé',
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       const response: DTO_RP_TicketSearch = {
@@ -218,22 +244,24 @@ export class TicketService {
       console.error('Lỗi khi tìm kiếm vé:', error);
       throw new HttpException(
         'Đã xảy ra lỗi khi tìm kiếm vé',
-        HttpStatus.INTERNAL_SERVER_ERROR,)
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
   }
 
-  async createTicketByPaymentService(data: DTO_RQ_TicketByPaymentService): Promise<any> {
-    console.log("Payment Service send Data:", data);
-  
+  async createTicketByPaymentService(
+    data: DTO_RQ_TicketByPaymentService,
+  ): Promise<any> {
+    console.log('Payment Service send Data:', data);
+
     const ids = data.ticket.map((item) => item.id);
     const tickets = await this.ticketRepository.findBy({ id: In(ids) });
-  
+
     if (tickets.length !== ids.length) {
       console.error('❌ Một hoặc nhiều vé không tồn tại trong DB!');
       throw new HttpException('Dữ liệu vé không tồn tại', HttpStatus.NOT_FOUND);
     }
-  
+
     for (const ticket of tickets) {
       // Cập nhật thông tin chung cho mỗi vé
       ticket.passenger_name = data.passenger_name;
@@ -242,41 +270,51 @@ export class TicketService {
       ticket.point_down = data.point_down;
       ticket.ticket_note = data.ticket_note;
       ticket.payment_method = 1;
-      ticket.creator_by_name = "VinaHome";
+      ticket.creator_by_name = 'VinaHome';
       ticket.email = data.email;
       ticket.gender = data.gender;
       ticket.creator_by_id = data.creator_by_id;
       ticket.status_booking_ticket = true;
     }
-  
+
     await this.ticketRepository.save(tickets);
   }
 
-  async updatePaidTicketAmount(data: DTO_RQ_Ticket[]): Promise<void> {
+  async updatePaidTicketAmount(data: DTO_RQ_Ticket[]): Promise<Ticket[]> {
     console.log('updatePaidTicketAmount', data);
-  
+    const updatedTickets: Ticket[] = [];
+
     for (const ticketDto of data) {
       const ticket = await this.ticketRepository.findOne({
         where: { id: ticketDto.id },
+        relations: ['company', 'trip'],
       });
-  
+
       if (!ticket) {
         console.warn(`⚠️ Ticket with ID ${ticketDto.id} not found.`);
         continue;
       }
-  
+
       ticket.money_paid = ticketDto.price;
-  
+
       try {
-        await this.ticketRepository.save(ticket);
-        console.log(`✅ Updated ticket ID ${ticket.id} with money_paid: ${ticket.money_paid}`);
+        const updatedTicket = await this.ticketRepository.save(ticket);
+        updatedTickets.push(updatedTicket);
+        console.log(
+          `✅ Updated ticket ID ${ticket.id} with money_paid: ${ticket.money_paid}`,
+        );
       } catch (error) {
         console.error(`❌ Failed to update ticket ID ${ticket.id}:`, error);
       }
     }
+
+    console.log('Vé đã cập nhật: \n', updatedTickets);
+    return updatedTickets;
   }
 
-  async getTicketByAccountId(accountId: string): Promise<DTO_RP_TicketSearch[]> {
+  async getTicketByAccountId(
+    accountId: string,
+  ): Promise<DTO_RP_TicketSearch[]> {
     console.log('Fetching tickets for account ID:', accountId);
 
     const tickets = await this.ticketRepository.find({
@@ -284,8 +322,8 @@ export class TicketService {
       relations: ['trip', 'trip.route', 'company'],
       order: { id: 'DESC' },
     });
-console.log('Fetched tickets:', tickets);
-    return tickets.map(ticket => ({
+    console.log('Fetched tickets:', tickets);
+    return tickets.map((ticket) => ({
       id: ticket.id,
       passenger_name: ticket.passenger_name,
       passenger_phone: ticket.passenger_phone,
@@ -302,9 +340,5 @@ console.log('Fetched tickets:', tickets);
       company_id: ticket.company.id,
       trip_id: ticket.trip.id,
     }));
-    
   }
-  
-  
-
 }
