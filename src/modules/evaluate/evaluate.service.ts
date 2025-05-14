@@ -87,4 +87,105 @@ export class EvaluateService {
             );
         }
     }
+
+    async getEvaluatesByTripId(tripId: number): Promise<DTO_RP_Evaluate[]> {
+        try {
+            console.log(`Getting evaluations for trip ID: ${tripId}`);
+            
+            // Verify trip exists
+            const existingTrip = await this.tripRepository.findOne({
+                where: { id: tripId },
+            });
+            
+            if (!existingTrip) {
+                throw new HttpException(
+                    'Chuyến đi không tồn tại!',
+                    HttpStatus.NOT_FOUND,
+                );
+            }
+            
+            // Get all evaluations for this trip
+            const evaluates = await this.evaluateRepository.find({
+                where: { trip: { id: tripId } },
+                relations: ['company', 'trip'],
+                order: { created_at: 'DESC' },
+            });
+            
+            // Map to response DTO
+            return evaluates.map(evaluate => ({
+                id: evaluate.id,
+                created_at: evaluate.created_at.toString(),
+                desc: evaluate.desc,
+                rating: evaluate.rating,
+                company_id: evaluate.company.id,
+                trip_id: evaluate.trip.id,
+                ticket_id: evaluate.ticket_id,
+                account_id: evaluate.account_id,
+                account_name: evaluate.account_name,
+                ticket_phone: evaluate.ticket_phone,
+                account_email: evaluate.account_email,
+                account_avatar: evaluate.account_avatar,
+            }));
+        } catch (error) {
+            console.error("Error while fetching evaluations:", error);
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(
+                'Đã xảy ra lỗi khi tải danh sách đánh giá!',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+    async getAverageEvaluateByTripId(tripId: number): Promise<{ tripId: number, averageRating: number, totalReviews: number }> {
+        try {
+            console.log(`Getting average rating for trip ID: ${tripId}`);
+            
+            // Verify trip exists
+            const existingTrip = await this.tripRepository.findOne({
+                where: { id: tripId },
+            });
+            
+            if (!existingTrip) {
+                throw new HttpException(
+                    'Chuyến đi không tồn tại!',
+                    HttpStatus.NOT_FOUND,
+                );
+            }
+            
+            // Get all evaluations for this trip
+            const evaluates = await this.evaluateRepository.find({
+                where: { trip: { id: tripId } },
+                select: ['rating'],
+            });
+            
+            if (evaluates.length === 0) {
+                return {
+                    tripId,
+                    averageRating: 0,
+                    totalReviews: 0
+                };
+            }
+            
+            // Calculate average rating
+            const totalRating = evaluates.reduce((sum, evaluate) => sum + evaluate.rating, 0);
+            const averageRating = totalRating / evaluates.length;
+            
+            return {
+                tripId,
+                averageRating: parseFloat(averageRating.toFixed(1)),
+                totalReviews: evaluates.length
+            };
+        } catch (error) {
+            console.error("Error while calculating average rating:", error);
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException(
+                'Đã xảy ra lỗi khi tính điểm đánh giá trung bình!',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
 }
