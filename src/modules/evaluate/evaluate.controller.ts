@@ -17,4 +17,25 @@ export class EvaluateController {
       return ApiResponse.error(error);
     }
   }
+
+  @MessagePattern('get_evaluates_by_trip_id')
+  async getEvaluatesByTripId(@Payload() tripId: number): Promise<ApiResponse<DTO_RP_Evaluate[]>> {
+    try {
+      const response = await this.evaluateService.getEvaluatesByTripId(tripId);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return ApiResponse.error(error);
+    }
+  }
+
+  @MessagePattern('get_average_evaluate_by_trip_id')
+  async getAverageEvaluateByTripId(@Payload() tripId: number): Promise<ApiResponse<{ tripId: number, averageRating: number, totalReviews: number }>> {
+    console.log('getAverageEvaluateByTripId', tripId);
+    try {
+      const response = await this.evaluateService.getAverageEvaluateByTripId(tripId);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return ApiResponse.error(error);
+    }
+  }
 }
