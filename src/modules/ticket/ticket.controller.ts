@@ -124,4 +124,16 @@ export class TicketController {
       return handleError(error);
     }
   }
+
+  @MessagePattern('abort_ticket_on_platform')
+  async abortTicketOnPlatform(
+    @Payload() data: DTO_RQ_TicketId | number,
+  ): Promise<ApiResponse<void>> {
+    try {
+      const response = await this.ticketService.abortTicketOnPlatform(data);
+      return ApiResponse.success(response);
+    } catch (error) {
+      return handleError(error);
+    }
+  }
 }
