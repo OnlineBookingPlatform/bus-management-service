@@ -146,6 +146,52 @@ export class TicketService {
     console.log('🎉 Cập nhật vé thành công!');
   }
 
+  async abortTicketOnPlatform(data: DTO_RQ_TicketId | number): Promise<void> {
+    console.log('👉 Bắt đầu xử lý abortTicketOnPlatform với dữ liệu:', data);
+
+    // Handle both cases: when data is a DTO object or a direct number ID
+    const ticketId = typeof data === 'object' && data !== null ? data.id : Number(data);
+    console.log('🔍 Searching for ticket ID:', ticketId);
+
+    try {
+      // First try to find the ticket directly to verify it exists
+      const ticket = await this.ticketRepository.findOne({
+        where: { id: ticketId },
+      });
+
+      if (!ticket) {
+        console.error(`❌ Ticket with ID ${ticketId} not found in database`);
+        throw new HttpException('Dữ liệu vé không tồn tại', HttpStatus.NOT_FOUND);
+      }
+
+      console.log(`✅ Found ticket ID ${ticketId}:`, ticket);
+
+      // Reset passenger information
+      ticket.passenger_name = '';
+      ticket.passenger_phone = '';
+      ticket.point_up = '';
+      ticket.point_down = '';
+      ticket.ticket_note = '';
+      ticket.email = '';
+      ticket.gender = 0;
+      ticket.creator_by_id = '';
+      ticket.creator_by_name = '';
+      ticket.payment_method = 0;
+      ticket.money_paid = 0;
+
+      // Change ticket status to available
+      ticket.status_booking_ticket = false;
+
+      console.log('💾 Đang lưu vé đã reset vào DB...');
+      await this.ticketRepository.save(ticket);
+
+      console.log('🎉 Huỷ vé và reset thông tin thành công!');
+    } catch (error) {
+      console.error('❌ Error in abortTicketOnPlatform:', error);
+      throw error;
+    }
+  }
+
   async updateTicketOnPlatform(
     data: DTO_RQ_UpdateTicketOnPlatform[],
   ): Promise<void> {
