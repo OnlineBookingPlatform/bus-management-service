@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ticket } from './ticket.entity';
 import { In, Repository } from 'typeorm';
@@ -13,6 +13,8 @@ import {
   DTO_RQ_UpdateTicketOnPlatform,
 } from './ticket.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import { RefundService } from '../refund/refund.service';
+import { InterestTicketService } from '../interest-ticket/interest-ticket.service';
 
 @Injectable()
 export class TicketService {
@@ -23,6 +25,9 @@ export class TicketService {
     private readonly tripRepository: Repository<Trip>,
 
     private readonly mailerService: MailerService,
+    private readonly refundService: RefundService,
+    @Inject(forwardRef(() => InterestTicketService))
+    private readonly interestTicketService: InterestTicketService,
   ) {}
 
   async getTicketByTrip(id: number): Promise<DTO_RP_Ticket[]> {
@@ -157,6 +162,7 @@ export class TicketService {
       // First try to find the ticket directly to verify it exists
       const ticket = await this.ticketRepository.findOne({
         where: { id: ticketId },
+        relations: ['trip', 'company'],
       });
 
       if (!ticket) {
@@ -166,26 +172,121 @@ export class TicketService {
 
       console.log(`✅ Found ticket ID ${ticketId}:`, ticket);
 
-      // Reset passenger information
-      ticket.passenger_name = '';
-      ticket.passenger_phone = '';
-      ticket.point_up = '';
-      ticket.point_down = '';
-      ticket.ticket_note = '';
-      ticket.email = '';
-      ticket.gender = 0;
-      ticket.creator_by_id = '';
-      ticket.creator_by_name = '';
-      ticket.payment_method = 0;
-      ticket.money_paid = 0;
+      // Find interest tickets first before doing anything else
+      let interestTickets = [];
+      let savedInterestTicketData = null;
+      
+      try {
+        interestTickets = await this.interestTicketService.findByTicketId(ticketId);
+        console.log(`✅ Found ${interestTickets.length} interest tickets for ticket ID ${ticketId}`);
 
-      // Change ticket status to available
-      ticket.status_booking_ticket = false;
+        // Save the first interest ticket data for later use
+        if (interestTickets && interestTickets.length > 0) {
+          savedInterestTicketData = {
+            account_id: interestTickets[0].account_id,
+            passenger_name: interestTickets[0].passenger_name,
+            passenger_phone: interestTickets[0].passenger_phone,
+            point_up: interestTickets[0].point_up,
+            point_down: interestTickets[0].point_down,
+            ticket_note: interestTickets[0].note,
+            passenger_email: interestTickets[0].passenger_email,
+            gender: interestTickets[0].gender
+          };
+          
+          // Delete the interest tickets right away
+          for (const interestTicket of interestTickets) {
+            await this.interestTicketService.delete({ id: interestTicket.id });
+            console.log(`✅ Deleted associated interest ticket with ID: ${interestTicket.id}`);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Error processing interest tickets: ${error.message}`);
+        // Continue even if interest ticket processing fails
+      }
+      
+      // Create refund record if needed
+      if (ticket.passenger_name && ticket.email) {
+        try {
+          await this.refundService.create({
+            ticket_id: ticket.id,
+            passenger_name: ticket.passenger_name,
+            passenger_phone: ticket.passenger_phone,
+            passenger_email: ticket.email,
+            money_paid: ticket.money_paid,
+          });
+          console.log(`✅ Đã tạo hồ sơ hoàn tiền cho vé ${ticket.id}`);
+          
+          // Send Vietnamese email notification about refund
+          if (ticket.email) {
+            await this.mailerService
+              .sendMail({
+                to: ticket.email,
+                subject: `Thông báo huỷ vé và hoàn tiền - Mã vé ${ticket.id}`,
+                template: 'refund-notification',
+                context: {
+                  ticketId: ticket.id,
+                  passengerName: ticket.passenger_name,
+                  tripInfo: ticket.trip ? `${ticket.trip.route?.name || ''}` : '',
+                  companyName: ticket.company?.name || '',
+                  refundAmount: ticket.money_paid || ticket.base_price || 0,
+                },
+                html: ticket.trip ? 
+                  `<div>
+                    <h2>Thông báo huỷ vé và hoàn tiền</h2>
+                    <p>Kính gửi ${ticket.passenger_name},</p>
+                    <p>Vé của bạn với mã <strong>${ticket.id}</strong> cho chuyến đi ${ticket.trip.route?.name || ''} đã được huỷ thành công.</p>
+                    <p>Số tiền hoàn trả: <strong>${(ticket.money_paid || ticket.base_price || 0).toLocaleString('vi-VN')} VNĐ</strong> sẽ được xử lý trong thời gian sớm nhất.</p>
+                    <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
+                    <p>Trân trọng,<br/>Dịch vụ khách hàng</p>
+                  </div>` :
+                  `<div>
+                    <h2>Thông báo huỷ vé và hoàn tiền</h2>
+                    <p>Kính gửi ${ticket.passenger_name},</p>
+                    <p>Vé của bạn với mã <strong>${ticket.id}</strong> đã được huỷ thành công.</p>
+                    <p>Số tiền hoàn trả: <strong>${(ticket.money_paid || ticket.base_price || 0).toLocaleString('vi-VN')} VNĐ</strong> sẽ được xử lý trong thời gian sớm nhất.</p>
+                    <p>Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
+                    <p>Trân trọng,<br/>Dịch vụ khách hàng</p>
+                  </div>`,
+              })
+              .then(() => {
+                console.log(`📧 Đã gửi email thông báo hoàn tiền đến: ${ticket.email}`);
+              })
+              .catch((error) => {
+                console.error(`❌ Không thể gửi email thông báo hoàn tiền: ${error.message}`);
+              });
+          }
+        } catch (error) {
+          console.error(`❌ Lỗi khi tạo hồ sơ hoàn tiền: ${error.message}`);
+        }
+      }
 
-      console.log('💾 Đang lưu vé đã reset vào DB...');
-      await this.ticketRepository.save(ticket);
+      // Now update the ticket with saved interest ticket data if available, 
+      // or just reset and change status if no interest ticket data
+      if (savedInterestTicketData) {
+        // Update with interest ticket data
+        await this.updateTicketOnPlatform([{
+          id: ticket.id,
+          passenger_id: savedInterestTicketData.account_id,
+          passenger_name: savedInterestTicketData.passenger_name,
+          passenger_phone: savedInterestTicketData.passenger_phone,
+          point_up: savedInterestTicketData.point_up,
+          point_down: savedInterestTicketData.point_down,
+          ticket_note: savedInterestTicketData.ticket_note,
+          email: savedInterestTicketData.passenger_email,
+          gender: savedInterestTicketData.gender,
+          creator_by_id: savedInterestTicketData.account_id,
+          status_booking_ticket: false
+        }]);
+        
+        console.log('💾 Đã cập nhật thông tin vé với dữ liệu từ interest ticket và huỷ trạng thái vé');
+      } else {
+        // Reset ticket data
+        ticket.status_booking_ticket = false;
+        await this.ticketRepository.save(ticket);
+        console.log('💾 Đang lưu vé đã reset vào DB...');
+      }
 
-      console.log('🎉 Huỷ vé và reset thông tin thành công!');
+      console.log('🎉 Huỷ vé và cập nhật thông tin thành công!');
     } catch (error) {
       console.error('❌ Error in abortTicketOnPlatform:', error);
       throw error;
@@ -216,12 +317,16 @@ export class TicketService {
         ticket.point_up = updateData.point_up;
         ticket.point_down = updateData.point_down;
         ticket.ticket_note = updateData.ticket_note;
-        // ticket.creator_by_id = updateData.passenger_id;
         ticket.payment_method = 1;
         ticket.creator_by_name = 'VinaHome';
         ticket.email = updateData.email;
         ticket.gender = updateData.gender;
         ticket.creator_by_id = updateData.creator_by_id;
+        
+        // Handle optional status_booking_ticket if provided
+        if (updateData.status_booking_ticket !== undefined) {
+          ticket.status_booking_ticket = updateData.status_booking_ticket;
+        }
       }
     }
 
@@ -363,8 +468,7 @@ export class TicketService {
 
     await this.mailerService
       .sendMail({
-        // to: updatedTickets[0]?.email,
-        to: 'giaphu432@gmail.com',
+        to: email || 'giaphu432@gmail.com',
         subject: `Thông tin hoá đơn từ VinaHome - Khách hàng ${passenger_name}`,
         template: 'invoice',
         context: {
@@ -385,9 +489,7 @@ export class TicketService {
     return updatedTickets;
   }
 
-  async getTicketByAccountId(
-    accountId: string,
-  ): Promise<DTO_RP_TicketSearch[]> {
+  async getTicketByAccountId(accountId: string): Promise<DTO_RP_TicketSearch[]> {
     console.log('Fetching tickets for account ID:', accountId);
 
     const tickets = await this.ticketRepository.find({

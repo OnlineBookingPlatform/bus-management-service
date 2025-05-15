@@ -19,6 +19,8 @@ import { EvaluateModule } from './modules/evaluate/evaluate.module';
 import { DiscountModule } from './modules/discount/discount.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { InterestTicketModule } from './modules/interest-ticket/interest-ticket.module';
+import { RefundModule } from './modules/refund/refund.module';
 
 @Module({
   imports: [
@@ -59,6 +61,8 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     TransitModule,
     EvaluateModule,
     DiscountModule,
+    RefundModule,
+    InterestTicketModule,
   ],
   controllers: [],
   providers: [RedisService],

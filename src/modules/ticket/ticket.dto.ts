@@ -35,6 +35,8 @@ export class DTO_RQ_UpdateTicketOnPlatform {
   email: string;
   gender: number;
   creator_by_id: string;
+  trip_id?: number;
+  status_booking_ticket?: boolean;
 }
 
 export interface DTO_RQ_TicketSearch {
