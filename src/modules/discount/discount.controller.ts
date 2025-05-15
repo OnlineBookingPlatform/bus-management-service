@@ -58,4 +58,16 @@ export class DiscountController {
       return handleError(error);
     }
   }
+
+  @MessagePattern('get_discounts_by_user_purchase')
+  async getDiscountsByUserPurchase(
+    @Payload() id: number,
+  ): Promise<ApiResponse<DTO_RP_Discount[]>> {
+    try {
+      const discounts = await this.discountService.getDiscountsByUserPurchase(id);
+      return ApiResponse.success(discounts); 
+    } catch (error) {
+      return handleError(error); 
+    }
+  }
 }

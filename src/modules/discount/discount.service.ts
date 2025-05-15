@@ -1,9 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { In } from 'typeorm';
 import { Repository } from 'typeorm';
 import { Discount } from './discount.entity';
 import { DTO_RP_Discount, DTO_RQ_Discount } from './discount.dto';
 import { Company } from '../company/company.entity';
+import { Ticket } from '../ticket/ticket.entity';
 
 @Injectable()
 export class DiscountService {
@@ -12,6 +14,8 @@ export class DiscountService {
     private readonly discountRepository: Repository<Discount>,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
+    @InjectRepository(Ticket)
+    private readonly ticketRepository: Repository<Ticket>,
   ) {}
 
   async getDiscountsByCompany(id: number): Promise<DTO_RP_Discount[]> {
@@ -191,5 +195,50 @@ export class DiscountService {
     }
 
     await this.discountRepository.delete({ id });
+  }
+
+  async getDiscountsByUserPurchase(userId: number): Promise<DTO_RP_Discount[]> {
+    // 1. Khởi đầu
+    console.log(`Bắt đầu lấy discount cho userId = ${userId}`);
+
+    // 2. Lấy danh sách vé mà người dùng đã đặt
+    const tickets = await this.ticketRepository.createQueryBuilder('ticket')
+      .leftJoinAndSelect('ticket.trip', 'trip')
+      .leftJoinAndSelect('trip.route', 'route')
+      .leftJoinAndSelect('route.company', 'company')
+      .where('ticket.creator_by_id = :userId', { userId: userId.toString() })
+      .getMany();
+    console.log('🧾 Vé lấy được:', tickets);
+
+    // 3.a. Trích xuất các công ty từ các vé
+    const companyIds = [
+      ...new Set(tickets.map(ticket => ticket.trip?.route?.company?.id).filter(Boolean)),
+    ];
+    console.log(`Danh sách companyIds lấy được từ vé: ${companyIds}`);
+
+    // 3.b. Nếu không có công ty nào thì trả về mảng rỗng
+    if (companyIds.length === 0) {
+      return [];
+    }
+
+    // 4. Lấy danh sách discount của các công ty
+    const discounts = await this.discountRepository.find({
+      where: { company: { id: In(companyIds) } },
+      relations: ['company'],
+    });
+
+    // 5. Chuẩn hóa dữ liệu để trả về
+    return discounts.map(discount => ({
+      id: discount.id,
+      discount_code: discount.discount_code,
+      date_start: discount.date_start?.toISOString() ?? null,
+      date_end: discount.date_end?.toISOString() ?? null,
+      discount_value: discount.discount_value,
+      discount_type: discount.discount_type,
+      description: discount.description ?? '',
+      number_of_uses: discount.number_of_uses ?? 0,
+      company_id: discount.company?.id ?? null,
+      created_at: discount.created_at?.toISOString() ?? null,
+    }));
   }
 }
