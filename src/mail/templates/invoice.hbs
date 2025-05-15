@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <meta charset='UTF-8' />
+    <title>Hóa đơn</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+      header,
+      section,
+      footer {
+        margin: 20px 0;
+        padding: 10px 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      header h2,
+      section h3 {
+        margin: 0 0 5px;
+        color: #007bff;
+      }
+
+      p {
+        color: #777;
+      }
+
+      header p,
+      section p,
+      footer p {
+        margin: 3px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #f4f4f4;
+        color: #555;
+        font-weight: bold;
+      }
+      tr:nth-child(even) {
+        background-color: #f8f8f8;
+      }
+      .logo {
+        max-width: 120px;
+        margin: 10px 0;
+      }
+      .total {
+        font-weight: bold;
+        color: #007bff;
+      }
+      footer {
+        text-align: center;
+        font-size: 0.9em;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2>Hoá đơn vé của bạn từ VinaHome</h2>
+      <p>Vui lòng kiểm tra thông tin đầy đủ (nếu có sai sót thì hãy liên lạc với chúng tôi)<p/>
+    </header>
+
+    <section>
+      <h3>Hóa đơn</h3>
+      <p>Ngày lập hóa đơn: {{trip.date_departure}}</p>
+      <p>Thời gian khởi hành: {{trip.time_departure}}</p>
+      <p>Nhà xe: {{company.name}}</p>
+      <p>Địa chỉ nhà xe: {{company.address}}</p>
+      <p>Số điện thoại: {{company.phone}}</p>
+      <p>Mã số thuế: {{company.tax_code}}</p>
+    </section>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tên ghế</th>
+          <th>Mã ghế</th>
+          <th>Tầng</th>
+          <th>Hàng</th>
+          <th>Cột</th>
+          <th>Giá vé</th>
+          <th>Đã thanh toán</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each tickets}}
+          <tr>
+            <td>{{seat_name}}</td>
+            <td>{{seat_code}}</td>
+            <td>{{seat_floor}}</td>
+            <td>{{seat_row}}</td>
+            <td>{{seat_column}}</td>
+            <td>{{base_price}}</td>
+            <td>{{money_paid}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <footer>
+      <p>Tổng số ghế: {{length}}</p>
+      <p class='total'>Tổng tiền đã thanh toán: {{totalPaid}}</p>
+      <p>Cảm ơn quý khách đã lựa chọn Vinahome!</p>
+    </footer>
+  </body>
+</html>

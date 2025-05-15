@@ -12,6 +12,7 @@ import {
   DTO_RQ_TicketSearch,
   DTO_RQ_UpdateTicketOnPlatform,
 } from './ticket.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class TicketService {
@@ -20,6 +21,8 @@ export class TicketService {
     private readonly ticketRepository: Repository<Ticket>,
     @InjectRepository(Trip)
     private readonly tripRepository: Repository<Trip>,
+
+    private readonly mailerService: MailerService,
   ) {}
 
   async getTicketByTrip(id: number): Promise<DTO_RP_Ticket[]> {
@@ -309,6 +312,30 @@ export class TicketService {
     }
 
     console.log('Vé đã cập nhật: \n', updatedTickets);
+
+    const { company, email, passenger_name, trip } = updatedTickets[0];
+
+    await this.mailerService
+      .sendMail({
+        // to: updatedTickets[0]?.email,
+        to: 'giaphu432@gmail.com',
+        subject: `Thông tin hoá đơn từ VinaHome - Khách hàng ${passenger_name}`,
+        template: 'invoice',
+        context: {
+          company,
+          trip,
+          tickets: updatedTickets,
+          length: updatedTickets.length,
+          totalPaid: updatedTickets.reduce(
+            (total, ticket) => total + ticket.base_price,
+            0,
+          ),
+        },
+      })
+      .catch((error) => {
+        console.log('Gửi hoá đơn về mail không thành công: \n', error);
+      });
+
     return updatedTickets;
   }
 

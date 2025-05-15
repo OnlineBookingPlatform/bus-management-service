@@ -17,9 +17,32 @@ import { InterestInRouteModule } from './modules/interest-in-route/interest-in-r
 import { TransitModule } from './modules/transit/transit.module';
 import { EvaluateModule } from './modules/evaluate/evaluate.module';
 import { DiscountModule } from './modules/discount/discount.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
   imports: [
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: 'ndg.phu03@gmail.com',
+          pass: 'phfgzqfwzoxevpcx',
+        },
+      },
+      defaults: {
+        from: '"No Reply <no-reply@localhost>"',
+      },
+      template: {
+        dir: process.cwd() + '/src/mail/templates/',
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
+    }),
     DatabaseModule,
     CompanyModule,
     OfficeModule,
