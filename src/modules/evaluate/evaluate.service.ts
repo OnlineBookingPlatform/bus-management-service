@@ -88,25 +88,25 @@ export class EvaluateService {
         }
     }
 
-    async getEvaluatesByTripId(tripId: number): Promise<DTO_RP_Evaluate[]> {
+    async getEvaluatesByCompanyId(companyId: number): Promise<DTO_RP_Evaluate[]> {
         try {
-            console.log(`Getting evaluations for trip ID: ${tripId}`);
+            console.log(`Getting evaluations for company ID: ${companyId}`);
             
-            // Verify trip exists
-            const existingTrip = await this.tripRepository.findOne({
-                where: { id: tripId },
+            // Verify company exists
+            const existingCompany = await this.companyRepository.findOne({
+                where: { id: companyId },
             });
             
-            if (!existingTrip) {
+            if (!existingCompany) {
                 throw new HttpException(
-                    'Chuyến đi không tồn tại!',
+                    'Công ty không tồn tại!',
                     HttpStatus.NOT_FOUND,
                 );
             }
             
-            // Get all evaluations for this trip
+            // Get all evaluations for this company
             const evaluates = await this.evaluateRepository.find({
-                where: { trip: { id: tripId } },
+                where: { company: { id: companyId } },
                 relations: ['company', 'trip'],
                 order: { created_at: 'DESC' },
             });
@@ -138,31 +138,31 @@ export class EvaluateService {
         }
     }
 
-    async getAverageEvaluateByTripId(tripId: number): Promise<{ tripId: number, averageRating: number, totalReviews: number }> {
+    async getAverageEvaluateByCompanyId(companyId: number): Promise<{ companyId: number, averageRating: number, totalReviews: number }> {
         try {
-            console.log(`Getting average rating for trip ID: ${tripId}`);
+            console.log(`Getting average rating for company ID: ${companyId}`);
             
-            // Verify trip exists
-            const existingTrip = await this.tripRepository.findOne({
-                where: { id: tripId },
+            // Verify company exists
+            const existingCompany = await this.companyRepository.findOne({
+                where: { id: companyId },
             });
             
-            if (!existingTrip) {
+            if (!existingCompany) {
                 throw new HttpException(
-                    'Chuyến đi không tồn tại!',
+                    'Công ty không tồn tại!',
                     HttpStatus.NOT_FOUND,
                 );
             }
             
-            // Get all evaluations for this trip
+            // Get all evaluations for this company
             const evaluates = await this.evaluateRepository.find({
-                where: { trip: { id: tripId } },
+                where: { company: { id: companyId } },
                 select: ['rating'],
             });
             
             if (evaluates.length === 0) {
                 return {
-                    tripId,
+                    companyId,
                     averageRating: 0,
                     totalReviews: 0
                 };
@@ -173,7 +173,7 @@ export class EvaluateService {
             const averageRating = totalRating / evaluates.length;
             
             return {
-                tripId,
+                companyId,
                 averageRating: parseFloat(averageRating.toFixed(1)),
                 totalReviews: evaluates.length
             };

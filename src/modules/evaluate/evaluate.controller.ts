@@ -18,21 +18,21 @@ export class EvaluateController {
     }
   }
 
-  @MessagePattern('get_evaluates_by_trip_id')
-  async getEvaluatesByTripId(@Payload() tripId: number): Promise<ApiResponse<DTO_RP_Evaluate[]>> {
+  @MessagePattern('get_evaluates_by_company_id')
+  async getEvaluatesByCompanyId(@Payload() companyId: number): Promise<ApiResponse<DTO_RP_Evaluate[]>> {
     try {
-      const response = await this.evaluateService.getEvaluatesByTripId(tripId);
+      const response = await this.evaluateService.getEvaluatesByCompanyId(companyId);
       return ApiResponse.success(response);
     } catch (error) {
       return ApiResponse.error(error);
     }
   }
 
-  @MessagePattern('get_average_evaluate_by_trip_id')
-  async getAverageEvaluateByTripId(@Payload() tripId: number): Promise<ApiResponse<{ tripId: number, averageRating: number, totalReviews: number }>> {
-    console.log('getAverageEvaluateByTripId', tripId);
+  @MessagePattern('get_average_evaluate_by_company_id')
+  async getAverageEvaluateByCompanyId(@Payload() companyId: number): Promise<ApiResponse<{ companyId: number, averageRating: number, totalReviews: number }>> {
+    console.log('getAverageEvaluateByCompanyId', companyId);
     try {
-      const response = await this.evaluateService.getAverageEvaluateByTripId(tripId);
+      const response = await this.evaluateService.getAverageEvaluateByCompanyId(companyId);
       return ApiResponse.success(response);
     } catch (error) {
       return ApiResponse.error(error);
